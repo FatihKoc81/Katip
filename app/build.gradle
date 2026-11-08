@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application' version '8.2.0'
     id 'org.jetbrains.kotlin.android' version '1.9.20'
-    id 'kotlin-kapt'
+    id 'kotlin-kapt' version '1.9.20'
 }
 
 android {
@@ -45,7 +45,7 @@ dependencies {
     // Material 3 XML Tema Desteği
     implementation 'com.google.android.material:material:1.11.0'
     
-    // Room Veritabanı ve Derleyicisi (Kapt Zorunludur)
+    // Room Veritabanı ve Derleyicisi
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.room:room-ktx:2.6.1'
     kapt 'androidx.room:room-compiler:2.6.1'
