@@ -18,14 +18,14 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Gradlew Çalıştırma İzni Ver
-      run: chmod +x ./gradlew
-
-    - name: Gradle Önbellek ve Kurulumu
+    - name: Gradle Kurulumu
       uses: gradle/actions/setup-gradle@v3
 
-    - name: APK Derle (Debug)
-      run: ./gradlew assembleDebug
+    - name: Gradle Wrapper Oluştur ve APK Derle
+      run: |
+        gradle wrapper --gradle-version 8.5
+        chmod +x ./gradlew
+        ./gradlew assembleDebug
 
     - name: APK Dosyasını Kaydet (Artifacts)
       uses: actions/upload-artifact@v4
