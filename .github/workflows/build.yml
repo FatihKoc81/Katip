@@ -18,6 +18,9 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Gradlew Çalıştırma İzni Ver
+      run: chmod +x ./gradlew
+
     - name: Gradle Önbellek ve Kurulumu
       uses: gradle/actions/setup-gradle@v3
 
