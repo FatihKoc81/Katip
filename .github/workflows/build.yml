@@ -18,13 +18,14 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Gradle Kurulumu
+    - name: Gradle Kurulumu ve Sürüm Sabitleme
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
 
-    - name: Gradle Wrapper Oluştur ve APK Derle
+    - name: APK Derle (Debug)
       run: |
-        gradle wrapper --gradle-version 8.5
-        chmod +x ./gradlew
+        chmod +x ./gradlew || true
         ./gradlew assembleDebug --warning-mode all
 
     - name: APK Dosyasını Kaydet (Artifacts)
