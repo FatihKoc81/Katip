@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- SMS ve Bildirim Okuma İzinleri -->
+    <!-- SMS ve İnternet İzinleri -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+
+    <!-- Android 14+ ve Modern Cihazlar İçin Ön Plan Servis İzinleri -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -10,11 +15,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Katip">
 
-        <!-- Bildirim Dinleme Servisi -->
+        <!-- Bildirim Dinleme Servisi (Ön Plan Servisi Olarak) -->
         <service
             android:name=".service.KatipNotificationListener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
