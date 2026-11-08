@@ -23,9 +23,11 @@ jobs:
       with:
         gradle-version: '8.5'
 
-    - name: APK Derle (Debug)
+    - name: Gerçek Gradle Wrapper Oluştur ve APK Derle
       run: |
-        chmod +x ./gradlew || true
+        rm -f gradlew gradlew.bat
+        gradle wrapper --gradle-version 8.5
+        chmod +x ./gradlew
         ./gradlew assembleDebug --warning-mode all
 
     - name: APK Dosyasını Kaydet (Artifacts)
