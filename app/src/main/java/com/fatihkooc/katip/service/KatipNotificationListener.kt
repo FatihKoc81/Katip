@@ -39,7 +39,6 @@ class KatipNotificationListener : NotificationListenerService() {
             .setOngoing(true)
             .build()
 
-        // Android'in servisi öldürmesini engelleyen kritik ön plan başlatması
         try {
             startForeground(1001, notification)
         } catch (e: Exception) {
