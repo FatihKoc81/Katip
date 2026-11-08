@@ -25,7 +25,7 @@ jobs:
       run: |
         gradle wrapper --gradle-version 8.5
         chmod +x ./gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --warning-mode all
 
     - name: APK Dosyasını Kaydet (Artifacts)
       uses: actions/upload-artifact@v4
