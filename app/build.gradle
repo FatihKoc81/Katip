@@ -1,33 +1,26 @@
-name: Kâtip APK Derleme
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
 
-on:
-  push:
-    branches: [ main ]
+android {
+    namespace 'com.fatihkooc.katip'
+    compileSdk 35
+    defaultConfig { applicationId 'com.fatihkooc.katip'; minSdk 24; targetSdk 35; versionCode 1; versionName '1.0.0' }
+    buildFeatures { compose true }
+    composeOptions { kotlinCompilerExtensionVersion '1.5.14' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    kotlinOptions { jvmTarget = '17' }
+}
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Projeyi İndir
-      uses: actions/checkout@v4
-
-    - name: Java (JDK 17) Kurulumu
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Gradle Kurulumu
-      uses: gradle/actions/setup-gradle@v3
-
-    - name: APK Derle (Debug)
-      run: |
-        chmod +x ./gradlew || true
-        ./gradlew assembleDebug -Pandroid.useAndroidX=true -Pandroid.enableJetifier=true --warning-mode all
-
-    - name: APK Dosyasını Kaydet (Artifacts)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Katip-Debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.3'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+}
