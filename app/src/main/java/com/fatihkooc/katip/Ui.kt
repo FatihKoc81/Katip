@@ -56,6 +56,20 @@ private val Palette = listOf(
 )
 private val TR = Locale("tr", "TR")
 
+// Güncelleme bağlantıları (depo adı farklıysa yalnızca bunları değiştir)
+private const val REPO_URL = "https://github.com/FatihKoc81/Katip"
+private const val APK_URL = "$REPO_URL/releases/latest/download/Katip.apk"
+private const val RELEASES_URL = "$REPO_URL/releases/latest"
+
+private fun appVersion(c: Context): String = try {
+    c.packageManager.getPackageInfo(c.packageName, 0).versionName ?: "?"
+} catch (e: Exception) { "?" }
+
+private fun openLink(c: Context, url: String): Boolean = try {
+    c.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    true
+} catch (e: Exception) { false }
+
 private fun catColor(name: String): Color {
     val i = Categories.expense.indexOf(name)
     return if (i >= 0) Palette[i % Palette.size] else Palette[(name.hashCode() and 0x7fffffff) % Palette.size]
@@ -515,6 +529,7 @@ private fun SettingsScreen(
     var sample by remember { mutableStateOf("") }
     var sampleResult by remember { mutableStateOf("") }
     var confirmClear by remember { mutableStateOf(false) }
+    var updateMsg by remember { mutableStateOf("") }
 
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -598,6 +613,26 @@ private fun SettingsScreen(
                         }
                     }) { Text("Ayrıştır ve ekle") }
                     if (sampleResult.isNotBlank()) Text(sampleResult, fontSize = 13.sp)
+                }
+            }
+        }
+
+        item {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Güncelleme", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Yüklü sürüm: " + appVersion(ctx), fontSize = 13.sp, color = Muted)
+                    Text(
+                        "Yeni sürüm GitHub'daki Releases sayfasında yayınlanır. İndirdikten sonra APK'yı açıp yükle; verilerin korunur.",
+                        fontSize = 12.sp, color = Muted
+                    )
+                    Button(onClick = {
+                        updateMsg = if (openLink(ctx, APK_URL)) "" else "Tarayıcı açılamadı."
+                    }) { Text("Son sürümü indir") }
+                    OutlinedButton(onClick = {
+                        updateMsg = if (openLink(ctx, RELEASES_URL)) "" else "Tarayıcı açılamadı."
+                    }) { Text("Sürümler sayfasını aç") }
+                    if (updateMsg.isNotBlank()) Text(updateMsg, fontSize = 13.sp, color = Red)
                 }
             }
         }
