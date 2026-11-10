@@ -1,7 +1,4 @@
 <resources>
-    <style name="Theme.Katip" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Özelleştirilebilir tema renkleri -->
-        <item name="colorPrimary">@android:color/holo_blue_dark</item>
-        <item name="colorOnPrimary">@android:color/white</item>
-    </style>
-</resources>
+<style name="Theme.Katip" parent="@android:style/Theme.Material.Light.NoActionBar">
+<item name="android:fontFamily">sans</item><item name="android:statusBarColor">#101A30</item><item name="android:navigationBarColor">#101A30</item><item name="android:windowLightStatusBar">false</item>
+</style></resources>
