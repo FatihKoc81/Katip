@@ -1,16 +1,17 @@
 # Kâtip
 
-Kişisel, yerel harcama defteri Android uygulaması.
+Kişisel, yerel bütçe asistanı Android uygulaması.
 
 ## Özellikler
-- Harcamayı elle ekleme: ad, tutar, kategori ve isteğe bağlı not
-- Aylık toplam ve tüm kayıtların toplamı
-- Harcama geçmişini görüntüleme ve tek tek silme
-- Veriler Android SharedPreferences içinde yalnızca cihazda saklanır
-- SMS, banka bildirimi, internet veya hesap bağlantısı yoktur
+- Ana ekran: toplam bakiye, aylık gelir, gider, kalan, aylık bütçe çubuğu, harcama dağılımı
+- Gelir/gider ekleme, düzenleme, silme (manuel giriş)
+- Banka bildirimlerinden ve SMS'lerden otomatik harcama/gelir yakalama
+- Otomatik kategori: market, yemek, ulaşım, yakıt, fatura, alışveriş, sağlık, eğlence
+- Raporlar: günlük, haftalık, aylık özet ve kategori dağılımı
+- Veriler yalnızca cihazda saklanır (internet yok)
 
 ## APK
-GitHub Actions içindeki Katip Android APK iş akışı her ana dal güncellemesinde debug APK üretir. Başarılı çalışmanın Katip-debug-apk artifact dosyası indirilebilir.
+Her `main` güncellemesinde GitHub Actions debug APK üretir ve **Releases** sayfasına `Katip.apk` olarak yükler.
 
 ## Derleme
-JDK 17 ve Gradle 8.7 ile gradle assembleDebug komutu kullanılır.
+JDK 17 ve Gradle 8.7 ile `gradle assembleDebug`.
