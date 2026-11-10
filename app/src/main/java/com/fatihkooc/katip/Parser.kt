@@ -3,15 +3,17 @@ package com.fatihkooc.katip
 object BankParser {
     class Parsed(val isIncome: Boolean, val amount: Double, val title: String, val category: String)
 
-    private const val NUM = """(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2})"""
+    private const val NUM = """(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2})"""
     private val amountA = Regex(NUM + """\s*(?:TL|TRY|₺)""", RegexOption.IGNORE_CASE)
     private val amountB = Regex("""(?:TL|TRY|₺)\s*""" + NUM, RegexOption.IGNORE_CASE)
     private val thousands = Regex("""^\d{1,3}(\.\d{3})+$""")
+    private val usFormat = Regex("""^\d{1,3}(,\d{3})+(\.\d{1,2})?$""")
 
     private val reject = listOf(
-        "onay kodu", "dogrulama", "sifre", " otp ", "kampanya", "indirim", "firsat",
+        "onay kodu", "dogrulama", " otp ", "kampanya", "indirim", "firsat",
         "tek kullanimlik", "kodunuz"
     )
+    private val rejectWeak = listOf("sifre")
     private val strongSpend = listOf(
         "kartinizdan", "hesabinizdan", "harcama", "alisveris", "pos ", "cekildi",
         "gonderildi", "provizyon", "borclandirildi", "satin alma"
@@ -31,11 +33,12 @@ object BankParser {
         "com.android.mms", "com.hihonor.mms", "com.huawei.message", "com.android.messaging"
     )
 
-    /** "1.250,50", "1250.50", "250,5" -> Double */
+    /** "1.250,50", "1,250.50", "1250.50", "250,5" -> Double */
     fun toDouble(s: String): Double? {
         val x = s.trim()
         if (x.isEmpty()) return null
         return when {
+            usFormat.matches(x) -> x.replace(",", "").toDoubleOrNull()
             x.contains(",") -> x.replace(".", "").replace(",", ".").toDoubleOrNull()
             thousands.matches(x) -> x.replace(".", "").toDoubleOrNull()
             else -> x.toDoubleOrNull()
@@ -57,10 +60,12 @@ object BankParser {
 
         val n = Categories.norm(text)
         if (reject.any { n.contains(it) }) return null
+        val hasSpend = strongSpend.any { n.contains(it) }
+        if (!hasSpend && rejectWeak.any { n.contains(it) }) return null
 
         val isIncome = when {
             n.contains("iade") -> true
-            strongSpend.any { n.contains(it) } -> false
+            hasSpend -> false
             incomeWords.any { n.contains(it) } -> true
             n.contains("odeme") || n.contains("islem") -> false
             else -> return null
