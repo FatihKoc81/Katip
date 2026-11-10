@@ -74,7 +74,7 @@ private fun sourceTag(s: String): String = when (s) {
 }
 
 private fun notifAccess(c: Context): Boolean =
-    NotificationManagerCompat.getEnabledListenerPackage(c).contains(c.packageName)
+    NotificationManagerCompat.getEnabledListenerPackages(c).contains(c.packageName)
 
 private fun smsGranted(c: Context): Boolean =
     ContextCompat.checkSelfPermission(c, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED
