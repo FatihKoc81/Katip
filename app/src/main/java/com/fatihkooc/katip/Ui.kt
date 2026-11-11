@@ -434,6 +434,31 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
     }
 }
 @Composable
+private fun BottomNavItem(
+    glyph: String,
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier.clip(RoundedCornerShape(15.dp)).clickable(onClick = onClick).padding(vertical = 5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            Modifier.size(34.dp).clip(RoundedCornerShape(12.dp))
+                .background(if (selected) Color(0xFF203B63) else Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(glyph, color = if (selected) Color(0xFFEAF3FF) else Color(0xFF91A4C1), fontSize = 21.sp)
+        }
+        Spacer(Modifier.height(2.dp))
+        Text(label, color = if (selected) Color.White else Color(0xFF91A4C1), fontSize = 9.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
+    }
+}
+
+@Composable
 private fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
