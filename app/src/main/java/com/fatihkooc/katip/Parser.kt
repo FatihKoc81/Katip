@@ -9,7 +9,7 @@ object BankParser {
 
     // Destekli faturalarda toplam tüketim bedeli değil, müşterinin ödeyeceği net tutar seçilir.
     private val payableAmount = Regex(
-        """(?:ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödenecek(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödeyeceğiniz\s+tutar|sizin\s+ödeyeceğiniz\s+tutar)\D{0,100}""" + NUM + """\s*(?:TL|TRY|₺)""",
+        """(?:ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödenecek(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödeyeceğiniz\s+tutar|sizin\s+ödeyeceğiniz\s+tutar|senin\s+ödeyeceğin(?:\s+tutar)?)\D{0,100}""" + NUM + """\s*(?:TL|TRY|₺)""",
         RegexOption.IGNORE_CASE
     )
     private val thousands = Regex("""^\d{1,3}(\.\d{3})+$""")
