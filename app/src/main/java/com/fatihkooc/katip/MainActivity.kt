@@ -38,6 +38,9 @@ class MainActivity : ComponentActivity() {
     private var dialogShowing = false
     private var setupDialog by mutableIntStateOf(0) // 0: yok, 1: gizlilik, 2: bildirim erişimi
 
+    private val notificationLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    
     private val smsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             resumeTick++
@@ -62,6 +65,14 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         resumeTick++
+        if (Build.VERSION.SDK_INT >= 33 &&
+            prefs.getBoolean("disclosed_v2", false) &&
+            !prefs.getBoolean("notification_permission_asked", false) &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            prefs.edit().putBoolean("notification_permission_asked", true).apply()
+            notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private val prefs get() = getSharedPreferences("katip_setup", Context.MODE_PRIVATE)
