@@ -81,7 +81,21 @@ class Store(context: Context) {
         private const val DUP_WINDOW = 3 * 60 * 1000L
     }
 
-    fun load(): List<Txn> = synchronized(LOCK) { read().sortedByDescending { it.date } }
+    fun load(): List<Txn> = synchronized(LOCK) {
+        val rows = read()
+        // Sepaş'ın eski SMS kaydında tüketim bedeli seçilmişse, müşterinin ödeyeceği net tutarla düzelt.
+        val repaired = rows.map { t ->
+            if (!t.isIncome &&
+                (t.source == "bildirim" || t.source == "sms") &&
+                Regex("""senin\\s+ödeyeceğin""", RegexOption.IGNORE_CASE).containsMatchIn(t.note)
+            ) {
+                val parsed = BankParser.parse(t.note)
+                if (parsed != null && !parsed.isIncome) t.copy(amount = parsed.amount) else t
+            } else t
+        }
+        if (repaired != rows) write(repaired)
+        repaired.sortedByDescending { it.date }
+    }
 
     private fun read(): List<Txn> {
         val raw = prefs.getString(KEY, null) ?: prefs.getString(OLD_KEY, null) ?: return emptyList()
