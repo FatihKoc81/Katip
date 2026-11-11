@@ -31,11 +31,15 @@ jobs:
       - name: Build debug APK
         run: gradle testDebugUnitTest assembleDebug --stacktrace
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk Katip.apk
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk Katip.apk
+          zip -j Katip-v1.4.4.zip Katip.apk
       - name: Publish release (APK direct download)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
           name: Katip v${{ github.run_number }}
-          files: Katip.apk
+          files: |
+            Katip.apk
+            Katip-v1.4.4.zip
           make_latest: true
