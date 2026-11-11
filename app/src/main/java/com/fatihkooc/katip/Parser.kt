@@ -154,11 +154,13 @@ object BankParser {
         val payable = explicitPayable(text)
         val allAmounts = candidates(text)
         val isUtilityBill = utilityWords.any { n.contains(it) }
+        val hasBillBreakdown = listOf("devlet destegi", "enerji destegi", "tuketim bedeli", "indirim", "kdv", "vergi tutari")
+            .any { n.contains(it) }
 
         val selected: Candidate = when {
             payable.size == 1 -> payable.first()
             payable.size > 1 -> return null // Bir mesajda birden fazla farklı net tutar varsa insan onayı gerekir.
-            isUtilityBill -> return null // Destek/vergili faturalarda brüt tutarı tahmin etme.
+            isUtilityBill && (hasBillBreakdown || allAmounts.size != 1) -> return null
             allAmounts.isEmpty() -> return null
             allAmounts.size == 1 -> allAmounts.first()
             else -> {
