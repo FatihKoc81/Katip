@@ -27,6 +27,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.IconButton
@@ -540,7 +543,7 @@ private fun BottomNavItem(
                         lineTo(size.width * .20f, size.height * .46f)
                         close()
                     }
-                    drawPath(p, tint, style = Stroke(sw, cap = StrokeCap.Round, join = PathJoin.Round))
+                    drawPath(p, tint, style = Stroke(sw, cap = StrokeCap.Round, join = StrokeJoin.Round))
                 }
                 "⇄" -> {
                     drawLine(tint, Offset(size.width * .14f, size.height * .34f), Offset(size.width * .84f, size.height * .34f), sw, cap = StrokeCap.Round)
