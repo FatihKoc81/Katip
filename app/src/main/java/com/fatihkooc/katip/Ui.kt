@@ -28,6 +28,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.IconButton
+import android.app.DownloadManager
+import android.os.Environment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -44,16 +54,17 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private val Navy = Color(0xFF080F24)
-private val Card1 = Color(0xFF111F3B)
-private val Card2 = Color(0xFF172B52)
-private val Blue = Color(0xFF4B8CFF)
-private val Green = Color(0xFF39D7B0)
-private val Red = Color(0xFFFF647C)
+private val Navy = Color(0xFF14213A)
+private val Card1 = Color(0xFF1D304F)
+private val Card2 = Color(0xFF294A78)
+private val Blue = Color(0xFF568FFF)
+private val Green = Color(0xFF42DDB5)
+private val Red = Color(0xFFFF7185)
 private val Amber = Color(0xFFFFC66D)
-private val Muted = Color(0xFF9EAFD0)
-private val HeroBrush = Brush.linearGradient(listOf(Color(0xFF254A88), Color(0xFF172B52), Color(0xFF111E3B)))
-private val ScreenBrush = Brush.verticalGradient(listOf(Color(0xFF0B1630), Color(0xFF080F24), Color(0xFF0C1730)))
+private val Muted = Color(0xFFB8C8E3)
+private val Edge = Color(0xFF3A5275)
+private val HeroBrush = Brush.linearGradient(listOf(Color(0xFF386DB4), Color(0xFF294A78), Color(0xFF1D355D)))
+private val ScreenBrush = Brush.verticalGradient(listOf(Color(0xFF172844), Color(0xFF14213A), Color(0xFF192B48)))
 private val Palette = listOf(
     Color(0xFF477BFF), Color(0xFF3DDC97), Color(0xFFFFC66D), Color(0xFFB66DFF), Color(0xFFFF6B6B),
     Color(0xFF4FD1E8), Color(0xFFFF9F5A), Color(0xFF9BE15D), Color(0xFF8A94A6)
@@ -64,6 +75,7 @@ private val TR = Locale("tr", "TR")
 private const val REPO_URL = "https://github.com/FatihKoc81/Katip"
 private const val APK_URL = "$REPO_URL/releases/latest/download/Katip.apk"
 private const val RELEASES_URL = "$REPO_URL/releases/latest"
+private const val LATEST_RELEASE_API = "https://api.github.com/repos/FatihKoc81/Katip/releases/latest"
 
 private fun appVersion(c: Context): String = try {
     c.packageManager.getPackageInfo(c.packageName, 0).versionName ?: "?"
@@ -73,6 +85,45 @@ private fun openLink(c: Context, url: String): Boolean = try {
     c.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     true
 } catch (e: Exception) { false }
+
+private data class UpdateInfo(val versionCode: Long, val apkUrl: String)
+
+private fun checkLatestUpdate(): UpdateInfo? {
+    val connection = (URL(LATEST_RELEASE_API).openConnection() as HttpURLConnection).apply {
+        connectTimeout = 10000
+        readTimeout = 10000
+        requestMethod = "GET"
+        setRequestProperty("Accept", "application/vnd.github+json")
+        setRequestProperty("User-Agent", "Katip-Android")
+    }
+    return try {
+        val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+        val code = json.optString("tag_name").removePrefix("v").toLongOrNull() ?: return null
+        val assets = json.optJSONArray("assets") ?: return null
+        var apk = ""
+        for (i in 0 until assets.length()) {
+            val asset = assets.getJSONObject(i)
+            if (asset.optString("name") == "Katip.apk") {
+                apk = asset.optString("browser_download_url")
+                break
+            }
+        }
+        if (apk.isBlank()) null else UpdateInfo(code, apk)
+    } finally {
+        connection.disconnect()
+    }
+}
+
+private fun downloadUpdate(context: Context, url: String) {
+    val request = DownloadManager.Request(Uri.parse(url))
+        .setTitle("Kâtip güncellemesi")
+        .setDescription("Yeni sürüm indiriliyor. İndirme bitince bildirime dokunup kurulumu onayla.")
+        .setMimeType("application/vnd.android.package-archive")
+        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "Katip-update.apk")
+    val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    manager.enqueue(request)
+}
 
 private fun catColor(name: String): Color {
     val i = Categories.expense.indexOf(name)
@@ -150,6 +201,9 @@ fun KatipApp(resumeTick: Int) {
     var tab by remember { mutableIntStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Txn?>(null) }
+    var updateBusy by remember { mutableStateOf(false) }
+    var updateMessage by remember { mutableStateOf("") }
+    val updateScope = rememberCoroutineScope()
     val tick = resumeTick + localTick
 
     DisposableEffect(Unit) {
@@ -209,6 +263,34 @@ fun KatipApp(resumeTick: Int) {
                 when (tab) {
                     0 -> HomeScreen(
                         txns, budget, autoOk,
+                        updateBusy = updateBusy,
+                        updateMessage = updateMessage,
+                        onCheckUpdate = {
+                            if (!updateBusy) {
+                                updateBusy = true
+                                updateMessage = "Güncelleme kontrol ediliyor…"
+                                updateScope.launch {
+                                    val result = withContext(Dispatchers.IO) {
+                                        runCatching { checkLatestUpdate() }.getOrNull()
+                                    }
+                                    updateBusy = false
+                                    if (result == null) {
+                                        updateMessage = "Güncelleme kontrol edilemedi. İnternet bağlantını kontrol et."
+                                    } else {
+                                        val installed = try {
+                                            val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+                                            if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+                                        } catch (_: Exception) { 0L }
+                                        if (result.versionCode > installed) {
+                                            downloadUpdate(ctx, result.apkUrl)
+                                            updateMessage = "Yeni sürüm bulundu ve indiriliyor. İndirme bildirimi geldiğinde dokunup kurulumu onayla."
+                                        } else {
+                                            updateMessage = "Kâtip güncel. Yeni sürüm bulunamadı."
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         onSettings = { tab = 3 },
                         onSeeAll = { tab = 1 },
                         onEdit = { editing = it; showDialog = true }
@@ -363,6 +445,7 @@ private fun TxnRow(t: Txn, onClick: () -> Unit) {
 @Composable
 private fun HomeScreen(
     txns: List<Txn>, budget: Double, autoOk: Boolean,
+    updateBusy: Boolean, updateMessage: String, onCheckUpdate: () -> Unit,
     onSettings: () -> Unit, onSeeAll: () -> Unit, onEdit: (Txn) -> Unit
 ) {
     val p = remember(txns.size) { period(2, 0) }
@@ -382,9 +465,16 @@ private fun HomeScreen(
                     Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.5.sp, fontSize = 23.sp)
                     Text("Paranın kontrolü sende.", fontSize = 12.sp, color = Muted)
                 }
-                Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFF172B52)), contentAlignment = Alignment.Center) {
-                    Text("✦", color = Color(0xFF8EB8FF), fontSize = 21.sp)
+                IconButton(
+                    onClick = onCheckUpdate,
+                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF2B4C7A)),
+                    enabled = !updateBusy
+                ) {
+                    Text(if (updateBusy) "…" else "✦", color = Color(0xFFDCE9FF), fontSize = 23.sp)
                 }
+            }
+            if (updateMessage.isNotBlank()) {
+                item { Text(updateMessage, color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
             }
         }
         item {
