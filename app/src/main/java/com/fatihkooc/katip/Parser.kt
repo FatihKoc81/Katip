@@ -15,7 +15,7 @@ object BankParser {
     // Farklı kurumlar aynı kavramı farklı kelimelerle ifade edebildiği için eş anlamlı etiketler kullanılır.
     private val payableLabels = listOf(
         Regex("""(?:senin\s+ödeyeceğin(?:\s+tutar)?|sizin\s+ödeyeceğiniz(?:\s+tutar)?|ödeyeceğiniz\s+tutar|müşterinin\s+ödeyeceği(?:\s+tutar)?|ödenecek(?:\s+fatura)?\s+(?:tutar[ıi]?|miktar[ıi]?|bedel[ıi]?)|ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|net\s+(?:ödeme|fatura)\s+tutar[ıi]?|tahsil\s+edilecek\s+tutar|ödenecek\s+toplam(?:\s+tutar)?)\D{0,80}""" + NUM + """\s*(?:TL|TRY|₺)?""", RegexOption.IGNORE_CASE),
-        Regex("""""" + NUM + """\s*(?:TL|TRY|₺)?\s*(?:ödenecek\s+tutar|ödenmesi\s+gereken\s+tutar|müşterinin\s+ödeyeceği\s+tutar)""", RegexOption.IGNORE_CASE)
+        Regex(NUM + """\s*(?:TL|TRY|₺)?\s*(?:ödenecek\s+tutar|ödenmesi\s+gereken\s+tutar|müşterinin\s+ödeyeceği\s+tutar)""", RegexOption.IGNORE_CASE)
     )
 
     private val reject = listOf(
