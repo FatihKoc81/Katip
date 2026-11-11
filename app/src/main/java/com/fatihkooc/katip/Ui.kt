@@ -196,6 +196,8 @@ fun KatipApp(resumeTick: Int) {
     val ctx = LocalContext.current
     val store = remember { Store(ctx) }
     var txns by remember { mutableStateOf(store.load()) }
+    var pendingReviews by remember { mutableStateOf(store.pending()) }
+    var pendingToEdit by remember { mutableStateOf<PendingReview?>(null) }
     var budget by remember { mutableDoubleStateOf(store.budget()) }
     var localTick by remember { mutableIntStateOf(0) }
     var tab by remember { mutableIntStateOf(0) }
@@ -207,7 +209,7 @@ fun KatipApp(resumeTick: Int) {
     val tick = resumeTick + localTick
 
     DisposableEffect(Unit) {
-        val l = store.listen { txns = store.load() }
+        val l = store.listen { txns = store.load(); pendingReviews = store.pending() }
         onDispose { store.unlisten(l) }
     }
 
@@ -253,7 +255,7 @@ fun KatipApp(resumeTick: Int) {
             },
             floatingActionButton = {
                 if (tab == 0 || tab == 1) {
-                    FloatingActionButton(onClick = { editing = null; showDialog = true }, containerColor = Blue) {
+                    FloatingActionButton(onClick = { editing = null; pendingToEdit = null; showDialog = true }, containerColor = Blue) {
                         Text("+", fontSize = 28.sp, color = Color.White)
                     }
                 }
@@ -293,9 +295,9 @@ fun KatipApp(resumeTick: Int) {
                         },
                         onSettings = { tab = 3 },
                         onSeeAll = { tab = 1 },
-                        onEdit = { editing = it; showDialog = true }
+                        onEdit = { editing = it; pendingToEdit = null; showDialog = true }
                     )
-                    1 -> TxnScreen(txns) { editing = it; showDialog = true }
+                    1 -> TxnScreen(txns) { editing = it; pendingToEdit = null; showDialog = true }
                     2 -> ReportScreen(txns)
                     else -> SettingsScreen(
                         store, budget, tick,
@@ -308,13 +310,36 @@ fun KatipApp(resumeTick: Int) {
 
         if (showDialog) {
             TxnDialog(
-                initial = editing,
+                initial = editing ?: pendingToEdit?.asTxn(),
                 onSave = { t ->
-                    if (editing == null) store.add(t) else store.update(t)
+                    val review = pendingToEdit
+                    if (review != null) {
+                        store.add(t.copy(id = System.currentTimeMillis(), note = review.text, source = review.source))
+                        store.removePending(review.id)
+                        pendingToEdit = null
+                    } else if (editing == null) store.add(t) else store.update(t)
                     showDialog = false
                 },
                 onDelete = editing?.let { e -> { store.delete(e.id); showDialog = false } },
-                onDismiss = { showDialog = false }
+                onDismiss = { showDialog = false; pendingToEdit = null }
+            )
+        }
+
+        if (!showDialog && pendingReviews.isNotEmpty()) {
+            val review = pendingReviews.first()
+            PendingReviewDialog(
+                item = review,
+                onConfirm = { amount ->
+                    val base = review.asTxn()
+                    store.add(base.copy(id = System.currentTimeMillis(), amount = amount))
+                    store.removePending(review.id)
+                },
+                onEdit = {
+                    editing = null
+                    pendingToEdit = review
+                    showDialog = true
+                },
+                onSkip = { store.removePending(review.id) }
             )
         }
     }
@@ -800,6 +825,57 @@ private fun SettingsScreen(
 }
 
 // ---------------------------------------------------------------- DIALOG
+
+@Composable
+private fun PendingReviewDialog(
+    item: PendingReview,
+    onConfirm: (Double) -> Unit,
+    onEdit: () -> Unit,
+    onSkip: () -> Unit
+) {
+    var amount by remember(item.id) { mutableStateOf(fmtInput(item.suggestedAmount)) }
+    var error by remember(item.id) { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("İşlemi doğrulayalım") },
+        text = {
+            Column(
+                Modifier.fillMaxWidth().heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text("Bu mesajda şu tutarı buldum. Harcama/gelir tutarı bu mu?", color = Muted)
+                Card(
+                    border = BorderStroke(1.dp, Edge),
+                    colors = CardDefaults.cardColors(containerColor = Card1)
+                ) {
+                    Text(item.text, Modifier.fillMaxWidth().padding(12.dp), fontSize = 12.sp, color = Muted)
+                }
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it.filter { c -> c.isDigit() || c == ',' || c == '.' }; error = "" },
+                    label = { Text("Bulduğum tutar (₺)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true
+                )
+                if (error.isNotBlank()) Text(error, color = Red, fontSize = 12.sp)
+                Text("Yanlışsa “Düzelt” seçeneğiyle tutarı ve kategoriyi değiştirebilirsiniz.", fontSize = 12.sp, color = Muted)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val value = BankParser.toDouble(amount)
+                if (value == null || value <= 0.0) error = "Geçerli bir tutar girin."
+                else onConfirm(value)
+            }) { Text("Evet, kaydet") }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onSkip) { Text("Atla") }
+                TextButton(onClick = onEdit) { Text("Değil, düzelt") }
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
