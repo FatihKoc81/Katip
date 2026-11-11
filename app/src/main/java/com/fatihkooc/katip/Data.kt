@@ -87,7 +87,7 @@ class Store(context: Context) {
         val repaired = rows.map { t ->
             if (!t.isIncome &&
                 (t.source == "bildirim" || t.source == "sms") &&
-                Regex("""senin\\s+ödeyeceğin""", RegexOption.IGNORE_CASE).containsMatchIn(t.note)
+                Regex("""senin\s+ödeyeceğin""", RegexOption.IGNORE_CASE).containsMatchIn(t.note)
             ) {
                 val parsed = BankParser.parse(t.note)
                 if (parsed != null && !parsed.isIncome) t.copy(amount = parsed.amount) else t
