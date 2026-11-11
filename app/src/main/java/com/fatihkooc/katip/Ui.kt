@@ -89,26 +89,38 @@ private fun openLink(c: Context, url: String): Boolean = try {
 private data class UpdateInfo(val versionCode: Long, val apkUrl: String)
 
 private fun checkLatestUpdate(): UpdateInfo? {
-    val connection = (URL(LATEST_RELEASE_API).openConnection() as HttpURLConnection).apply {
-        connectTimeout = 10000
-        readTimeout = 10000
+    // GitHub Actions releases may finish out of order. Never trust only
+    // /releases/latest: scan the release list and choose the highest build tag.
+    val connection = (URL("https://api.github.com/repos/FatihKoc81/Katip/releases?per_page=100").openConnection() as HttpURLConnection).apply {
+        connectTimeout = 15000
+        readTimeout = 15000
         requestMethod = "GET"
         setRequestProperty("Accept", "application/vnd.github+json")
         setRequestProperty("User-Agent", "Katip-Android")
     }
     return try {
-        val json = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
-        val code = json.optString("tag_name").removePrefix("v").toLongOrNull() ?: return null
-        val assets = json.optJSONArray("assets") ?: return null
-        var apk = ""
-        for (i in 0 until assets.length()) {
-            val asset = assets.getJSONObject(i)
-            if (asset.optString("name") == "Katip.apk") {
-                apk = asset.optString("browser_download_url")
-                break
+        val releases = org.json.JSONArray(connection.inputStream.bufferedReader().use { it.readText() })
+        var bestCode = -1L
+        var bestApk = ""
+        for (i in 0 until releases.length()) {
+            val release = releases.optJSONObject(i) ?: continue
+            if (release.optBoolean("draft", false) || release.optBoolean("prerelease", false)) continue
+            val code = release.optString("tag_name").removePrefix("v").toLongOrNull() ?: continue
+            val assets = release.optJSONArray("assets") ?: continue
+            var apk = ""
+            for (j in 0 until assets.length()) {
+                val asset = assets.optJSONObject(j) ?: continue
+                if (asset.optString("name") == "Katip.apk") {
+                    apk = asset.optString("browser_download_url")
+                    break
+                }
+            }
+            if (apk.isNotBlank() && code > bestCode) {
+                bestCode = code
+                bestApk = apk
             }
         }
-        if (apk.isBlank()) null else UpdateInfo(code, apk)
+        if (bestCode < 0L || bestApk.isBlank()) null else UpdateInfo(bestCode, bestApk)
     } finally {
         connection.disconnect()
     }
