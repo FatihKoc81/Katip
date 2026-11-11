@@ -14,7 +14,7 @@ private const val MAIL_DUP_WINDOW = 20 * 60 * 1000L
 private fun save(context: Context, text: String, source: String, fromMail: Boolean = false) {
     val p = BankParser.parse(text, fromMail) ?: return
     val now = System.currentTimeMillis()
-    val txn = Txn(now, p.isIncome, p.title, p.amount, p.category, text.trim().take(160), now, source)
+    val txn = Txn(now, p.isIncome, p.title, p.amount, p.category, text.trim().take(1000), now, source)
     if (fromMail) Store(context).addAuto(txn, MAIL_DUP_WINDOW) else Store(context).addAuto(txn)
 }
 
