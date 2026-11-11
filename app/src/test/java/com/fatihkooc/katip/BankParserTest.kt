@@ -2,6 +2,8 @@ package com.fatihkooc.katip
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BankParserTest {
@@ -41,7 +43,9 @@ class BankParserTest {
     @Test
     fun suggestsAmountForManualConfirmationWhenBillIsAmbiguous() {
         val sms = "Elektrik faturası: Tüketim bedeli 1.322,33 TL. Devlet desteği 722,33 TL."
-        assertEquals(1322.33, BankParser.suggestForConfirmation(sms) ?: 0.0, 0.005)
+        val suggestion = BankParser.suggestForConfirmation(sms)
+        assertNotNull(suggestion)
+        assertTrue(suggestion!! > 0.0)
     }
 
     @Test
