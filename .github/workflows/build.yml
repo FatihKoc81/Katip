@@ -33,7 +33,7 @@ jobs:
       - name: Rename APK
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk Katip.apk
-          zip -j Katip-v1.4.5.zip Katip.apk
+          zip -j Katip-v1.4.6.zip Katip.apk
       - name: Publish release (APK direct download)
         uses: softprops/action-gh-release@v2
         with:
@@ -41,5 +41,5 @@ jobs:
           name: Katip v${{ github.run_number }}
           files: |
             Katip.apk
-            Katip-v1.4.4.zip
+            Katip-v1.4.6.zip
           make_latest: true
