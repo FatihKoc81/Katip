@@ -375,14 +375,35 @@ private fun Donut(slices: List<Pair<String, Double>>, modifier: Modifier = Modif
 }
 
 @Composable
-private fun CategoryBlock(rows: List<Pair<String, Double>>) {
+private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = false) {
     val total = rows.sumOf { it.second }
-    Card(shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Text("Harcama dağılımı", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(Modifier.height(12.dp))
-            if (rows.isEmpty()) {
-                Text("Bu dönemde harcama yok.", color = Muted, fontSize = 13.sp)
+    Card(shape = RoundedCornerShape(22.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
+        Column(Modifier.fillMaxWidth().padding(if (compact) 14.dp else 16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Harcama dağılımı", fontWeight = FontWeight.Bold, fontSize = if (compact) 15.sp else 16.sp)
+                if (compact) Text("KATEGORİLER", color = Muted, fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(if (compact) 8.dp else 12.dp))
+            if (rows.isEmpty()) Text("Bu dönemde harcama yok.", color = Muted, fontSize = 13.sp)
+            else if (compact) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Donut(rows, Modifier.size(104.dp))
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        rows.take(4).forEach { (cat, value) ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(9.dp).clip(CircleShape).background(catColor(cat)))
+                                Spacer(Modifier.width(7.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(cat, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(money(value), fontSize = 11.sp, color = Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                                Text("%" + (value / total * 100).toInt(), fontSize = 11.sp, color = Muted)
+                            }
+                        }
+                        if (rows.size > 4) Text("+" + (rows.size - 4) + " kategori daha", color = Muted, fontSize = 10.sp)
+                    }
+                }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Donut(rows)
@@ -396,12 +417,6 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>) {
                                 Text(money(v), fontSize = 12.sp, color = Muted, modifier = Modifier.weight(1.25f), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End)
                             }
                         }
-                    }
-                }
-                if (rows.size > 5) {
-                    Spacer(Modifier.height(10.dp))
-                    rows.drop(5).forEach { (cat, v) ->
-                        Text("$cat: ${money(v)}", fontSize = 12.sp, color = Muted)
                     }
                 }
                 Spacer(Modifier.height(14.dp))
@@ -419,7 +434,6 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>) {
         }
     }
 }
-
 @Composable
 private fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
@@ -479,111 +493,100 @@ private fun HomeScreen(
     val inc = month.filter { it.isIncome }.sumOf { it.amount }
     val exp = month.filterNot { it.isIncome }.sumOf { it.amount }
     val balance = txns.sumOf { if (it.isIncome) it.amount else -it.amount }
+    val remaining = budget - exp
+    val ratio = if (budget > 0) (exp / budget).toFloat() else 0f
 
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 96.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 4.dp, bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(9.dp)
     ) {
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.5.sp, fontSize = 23.sp)
-                    Text("Paranın kontrolü sende.", fontSize = 12.sp, color = Muted)
+            Row(Modifier.fillMaxWidth().heightIn(min = 42.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Blue), contentAlignment = Alignment.Center) {
+                        Text("₺", fontSize = 22.sp, color = Color.White, fontWeight = FontWeight.ExtraBold)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy((-2).dp)) {
+                        Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp, fontSize = 19.sp)
+                        Text("Finansal kontrol panelin", fontSize = 10.sp, color = Muted)
+                    }
                 }
-                IconButton(
-                    onClick = onCheckUpdate,
-                    modifier = Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF2B4C7A)),
-                    enabled = !updateBusy
-                ) {
-                    Text(if (updateBusy) "…" else "✦", color = Color(0xFFDCE9FF), fontSize = 23.sp)
+                IconButton(onClick = onCheckUpdate, modifier = Modifier.size(38.dp).clip(CircleShape).background(Color(0xFF2B4C7A)), enabled = !updateBusy) {
+                    Text(if (updateBusy) "…" else "↻", color = Color.White, fontSize = 21.sp)
                 }
             }
         }
-        if (updateMessage.isNotBlank()) {
-            item { Text(updateMessage, color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
-        }
+        if (updateMessage.isNotBlank()) item { Text(updateMessage, color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
         item {
-            Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
-                Box(Modifier.fillMaxWidth().background(HeroBrush, RoundedCornerShape(28.dp))) {
-                    Column(Modifier.fillMaxWidth().padding(22.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Column {
-                                Text("TOPLAM BAKİYE", color = Color(0xFFB9CBEA), fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                                Spacer(Modifier.height(8.dp))
-                                Text(money(balance), fontSize = if (money(balance).length > 13) 27.sp else 34.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+            Card(shape = RoundedCornerShape(23.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
+                Box(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF3478C9), Color(0xFF25456F), Color(0xFF1D3558))), RoundedCornerShape(23.dp))) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 15.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                            Column(Modifier.weight(1f)) {
+                                Text("TOPLAM BAKİYE", color = Color(0xFFD0E1FA), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
+                                Spacer(Modifier.height(5.dp))
+                                Text(money(balance), fontSize = if (money(balance).length > 13) 25.sp else 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                             }
-                            Box(Modifier.size(46.dp).clip(CircleShape).background(Color(0x334B8CFF)), contentAlignment = Alignment.Center) {
-                                Text("₺", fontSize = 25.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0x334B8CFF)), contentAlignment = Alignment.Center) {
+                                Text("₺", fontSize = 23.sp, color = Color.White, fontWeight = FontWeight.Bold)
                             }
                         }
-                        Spacer(Modifier.height(18.dp))
+                        Spacer(Modifier.height(9.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(7.dp).clip(CircleShape).background(Green))
-                            Spacer(Modifier.width(7.dp))
-                            Text(p.label + "  •  Aylık net " + money(inc - exp), color = Color(0xFFCAD8F0), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Box(Modifier.size(6.dp).clip(CircleShape).background(Green))
+                            Spacer(Modifier.width(6.dp))
+                            Text(p.label + "  ·  Net " + money(inc - exp), color = Color(0xFFD0E1FA), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
             }
         }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard("AYLIK GELİR", money(inc), Green, Modifier.weight(1f))
-                StatCard("AYLIK GİDER", money(exp), Red, Modifier.weight(1f))
-                StatCard("BÜTÇE KALAN", money(budget - exp), if (budget - exp >= 0) Green else Red, Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatCard("GELİR", money(inc), Green, Modifier.weight(1f))
+                StatCard("GİDER", money(exp), Red, Modifier.weight(1f))
+                StatCard("BÜTÇE KALAN", if (budget > 0) money(remaining) else "Ayarlanmadı", if (remaining >= 0) Green else Red, Modifier.weight(1f))
             }
         }
         if (!autoOk) {
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF3A2A1A))) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                        Text("Otomatik takip kapalı", fontWeight = FontWeight.Bold, color = Amber)
-                        Text(
-                            "Banka bildirimlerinden ve SMS'lerden harcama okumak için izin ver.",
-                            fontSize = 13.sp, color = Muted
-                        )
-                        TextButton(onClick = onSettings) { Text("İzinleri aç") }
+                Card(shape = RoundedCornerShape(15.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF3A2A1A))) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 13.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Otomatik takip kapalı", fontWeight = FontWeight.Bold, color = Amber, fontSize = 12.sp)
+                            Text("Banka bildirimleri için izin ver.", fontSize = 11.sp, color = Muted)
+                        }
+                        TextButton(onClick = onSettings) { Text("Aç", fontSize = 12.sp) }
                     }
                 }
             }
         }
         if (budget > 0) {
             item {
-                val ratio = (exp / budget).toFloat()
                 Card(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Aylık bütçe", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            Text(money(exp) + " / " + money(budget), fontSize = 11.sp, color = Muted, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End, modifier = Modifier.weight(1.35f))
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Aylık bütçe", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(money(exp) + " / " + money(budget), fontSize = 10.sp, color = Muted, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                         }
-                        Spacer(Modifier.height(8.dp))
                         Bar(ratio, if (ratio >= 1f) Red else if (ratio >= 0.8f) Amber else Green)
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            if (exp > budget) "Bütçeyi " + money(exp - budget) + " aştın."
-                            else "Kalan bütçe: " + money(budget - exp),
-                            fontSize = 12.sp, color = if (exp > budget) Red else Muted
-                        )
+                        Text(if (remaining < 0) "Limit " + money(-remaining) + " aşıldı" else "Kalan: " + money(remaining), fontSize = 11.sp, color = if (remaining < 0) Red else Muted)
                     }
                 }
             }
         }
-        item { CategoryBlock(month.expenseByCategory()) }
+        item { CategoryBlock(month.expenseByCategory(), compact = true) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Son işlemler", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                TextButton(onClick = onSeeAll) { Text("Tümünü gör") }
+                Text("Son işlemler", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                TextButton(onClick = onSeeAll) { Text("Tümünü gör", fontSize = 12.sp) }
             }
         }
-        if (txns.isEmpty()) {
-            item { Text("Henüz işlem yok. + düğmesiyle ekle ya da otomatik takibi aç.", color = Muted, fontSize = 13.sp) }
-        } else {
-            items(txns.take(5), key = { it.id }) { t -> TxnRow(t) { onEdit(t) } }
-        }
+        if (txns.isEmpty()) item { Text("Henüz işlem yok. + düğmesiyle ekle ya da otomatik takibi aç.", color = Muted, fontSize = 12.sp) }
+        else items(txns.take(4), key = { it.id }) { t -> TxnRow(t) { onEdit(t) } }
     }
 }
-
 @Composable
 private fun TxnScreen(txns: List<Txn>, onEdit: (Txn) -> Unit) {
     var filter by remember { mutableIntStateOf(0) }
