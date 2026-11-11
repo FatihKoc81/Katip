@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
@@ -264,8 +265,8 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(10.dp).clip(CircleShape).background(catColor(cat)))
                                 Spacer(Modifier.width(8.dp))
-                                Text(cat, fontSize = 13.sp, modifier = Modifier.width(80.dp), maxLines = 1)
-                                Text(money(v), fontSize = 13.sp, color = Muted)
+                                Text(cat, fontSize = 12.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(money(v), fontSize = 12.sp, color = Muted, modifier = Modifier.weight(1.25f), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End)
                             }
                         }
                     }
@@ -298,7 +299,7 @@ private fun StatCard(label: String, value: String, color: Color, modifier: Modif
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Text(label, color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
-            Text(value, color = color, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+            Text(value, color = color, fontSize = if (value.length > 11) 12.sp else 15.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -324,7 +325,14 @@ private fun TxnRow(t: Txn, onClick: () -> Unit) {
             }
             Text(
                 (if (t.isIncome) "+" else "-") + money(t.amount),
-                color = if (t.isIncome) Green else Red, fontWeight = FontWeight.Bold
+                color = if (t.isIncome) Green else Red,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.widthIn(max = 112.dp)
             )
         }
     }
@@ -356,9 +364,9 @@ private fun HomeScreen(
             Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Card2)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp)) {
                     Text("TOPLAM BAKİYE", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(money(balance), fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                    Text(money(balance), fontSize = if (money(balance).length > 13) 26.sp else 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                     Spacer(Modifier.height(4.dp))
-                    Text(p.label + " • kalan: " + money(inc - exp), color = Muted, fontSize = 13.sp)
+                    Text(p.label + " • kalan: " + money(inc - exp), color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -389,8 +397,8 @@ private fun HomeScreen(
                 Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
                     Column(Modifier.fillMaxWidth().padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Aylık bütçe", fontWeight = FontWeight.Bold)
-                            Text(money(exp) + " / " + money(budget), fontSize = 13.sp, color = Muted)
+                            Text("Aylık bütçe", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Text(money(exp) + " / " + money(budget), fontSize = 11.sp, color = Muted, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.End, modifier = Modifier.weight(1.35f))
                         }
                         Spacer(Modifier.height(8.dp))
                         Bar(ratio, if (ratio >= 1f) Red else if (ratio >= 0.8f) Amber else Green)
