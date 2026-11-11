@@ -139,6 +139,24 @@ object BankParser {
     }
 
     /**
+     * Belirsiz ama finansal içerikli mesajlarda kullanıcıya gösterilecek tutar önerisi.
+     * Bu değer tek başına kayıt sebebi değildir; mutlaka kullanıcı onayı gerekir.
+     */
+    fun suggestForConfirmation(text: String): Double? {
+        if (text.isBlank()) return null
+        val n = normalize(text)
+        val financialContext = listOf(
+            "tl", "try", "₺", "fatura", "odeme", "harcama", "kart", "hesap",
+            "borc", "tahsil", "islem", "elektrik", "dogalgaz", "su faturasi",
+            "market", "alisveris", "pos", "havale", "eft"
+        )
+        if (financialContext.none { n.contains(normalize(it).trim()) }) return null
+        val amounts = candidates(text)
+        if (amounts.isEmpty()) return null
+        return amounts.maxByOrNull { score(it, text) }?.value
+    }
+
+    /**
      * Güvenli ayrıştırma:
      * - Önce açık net/ödenecek tutar etiketleri.
      * - Sonra bağlamı güçlü işlem tutarı adayları.
