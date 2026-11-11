@@ -716,6 +716,19 @@ private fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item { Text("Ayarlar", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold) }
+        item {
+            Card(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("İşCep ekranından otomatik kayıt", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text("İşCep bildirim göndermese bile, ödeme başlatıldı ekranındaki tutarı Kâtip okuyabilir. Erişilebilirlik izni yalnızca İşCep ekranı açıkken işlem metnini kontrol etmek için kullanılır.", fontSize = 12.sp, color = Muted)
+                    OutlinedButton(onClick = {
+                        ctx.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }, modifier = Modifier.fillMaxWidth()) { Text("Kâtip ekran okuma iznini aç") }
+                    Text("Android ayarlarında Kâtip hizmetini etkinleştirmen gerekir. İzin isteğe bağlıdır; istediğin zaman kapatabilirsin.", fontSize = 11.sp, color = Muted)
+                }
+            }
+        }
+
 
         item {
             Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
