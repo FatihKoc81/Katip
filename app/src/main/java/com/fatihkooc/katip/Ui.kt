@@ -601,32 +601,32 @@ private fun HomeScreen(
                         drawLine(glow.copy(alpha = .10f), Offset(size.width * .03f, size.height * .12f), Offset(size.width * .96f, size.height * .12f), 10.dp.toPx())
                         drawArc(Color(0xFF9D55FF).copy(alpha = .20f), 190f, 75f, false, Offset(0f, size.height * .75f), Size(size.width * .55f, size.height * .45f), style = Stroke(12.dp.toPx()))
                     }
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 13.dp, vertical = 9.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(Modifier.fillMaxWidth().heightIn(min = 76.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                        Row(Modifier.fillMaxWidth().heightIn(min = 61.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("▣", color = Color(0xFF53DFFF), fontSize = 17.sp)
-                                    Text("Toplam Bakiye", color = Color(0xFFB9DDFB), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("▣", color = Color(0xFF53DFFF), fontSize = 15.sp)
+                                    Text("Toplam Bakiye", color = Color(0xFFB9DDFB), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                                 }
-                                Text(money(balance), fontSize = if (money(balance).length > 13) 21.sp else 25.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                                Text(money(balance), fontSize = if (money(balance).length > 13) 18.sp else 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                                 Text(p.label, color = Color(0xFFB7D0EC), fontSize = 9.sp)
                             }
-                            Box(Modifier.width(1.dp).height(76.dp).background(Color(0xFF5799CB).copy(alpha = .65f)))
+                            Box(Modifier.width(1.dp).height(61.dp).background(Color(0xFF5799CB).copy(alpha = .65f)))
                             Column(Modifier.weight(.92f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("◎", color = Color(0xFF53DFFF), fontSize = 18.sp)
+                                    Text("◎", color = Color(0xFF53DFFF), fontSize = 15.sp)
                                     Text("Aylık Bütçe", color = Color(0xFFB9DDFB), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
-                                Text(if (budget > 0) money(budget) else "Belirlenmedi", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                                Text(if (budget > 0) money(budget) else "Belirlenmedi", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                                 Text(if (budget > 0) "Kalan: " + money(remaining) else "Hedef belirle", color = Color(0xFFB7D0EC), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Box(Modifier.fillMaxWidth().padding(top = 3.dp).height(7.dp).clip(CircleShape).background(Color(0xFF294768))) {
+                                Box(Modifier.fillMaxWidth().padding(top = 1.dp).height(5.dp).clip(CircleShape).background(Color(0xFF294768))) {
                                     Box(Modifier.fillMaxWidth(ratio).fillMaxHeight().clip(CircleShape).background(Brush.horizontalGradient(listOf(Color(0xFF00E7A4), Color(0xFF08BFFF)))))
                                 }
                                 Text("%" + ((1f - ratio) * 100).toInt() + " kaldı", color = Color(0xFF39E8B0), fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.End))
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("↓ Gelir  " + money(inc), color = Color(0xFF45E6B3), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("↓ Gelir  " + money(inc), color = Color(0xFF45E6B3), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             Text("↑ Gider  " + money(exp), color = Color(0xFFFF8298), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
