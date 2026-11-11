@@ -30,7 +30,7 @@ object BankParser {
         "kartinizdan", "hesabinizdan", "harcama", "alisveris", "pos ",
         "cekildi", "gonderildi", "provizyon", "borclandirildi", "satin alma",
         "temassiz", "mobil odeme", "odemeniz alindi", "odemeniz basariyla",
-        "odemeniz gerceklesti", "odemeniz tamamlandi", "fatura odemesi",
+        "odemeniz gerceklesti", "odemeniz tamamlandi", "odeme baslatilmistir", "odeme baslatildi", "fatura odemesi",
         "islem tutari", "harcama tutari", "tahsil edildi"
     )
     private val incomeWords = listOf(
@@ -41,7 +41,7 @@ object BankParser {
         "islem tutari", "harcama tutari", "odeme tutari", "cekilen tutar",
         "kartinizdan", "hesabinizdan", "tahsil edildi", "tahsilat tutari",
         "alisveris tutari", "odemeniz", "harcama", "provizyon", "satin alma",
-        "fatura odemesi", "islem gerceklesti", "islem basarili"
+        "fatura odemesi", "islem gerceklesti", "islem basarili", "odeme baslatilmistir", "odeme baslatildi"
     )
     private val negativeAmountContext = listOf(
         "bakiye", "kalan bakiye", "kullanilabilir limit", "kredi limiti",
