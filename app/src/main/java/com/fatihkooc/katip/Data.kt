@@ -119,12 +119,12 @@ class Store(context: Context) {
         write(list + t.copy(id = id))
     }
 
-    /** Bildirim/SMS'ten gelen kaydı ekler; aynı işlem 3 dk içinde tekrar gelirse eklemez. */
-    fun addAuto(t: Txn): Boolean = synchronized(LOCK) {
+    /** Bildirim/SMS/e-postadan gelen kaydı ekler; aynı işlem pencere süresi içinde tekrar gelirse eklemez. */
+    fun addAuto(t: Txn, window: Long = DUP_WINDOW): Boolean = synchronized(LOCK) {
         val list = read()
         val dup = list.any {
             it.source != "manuel" && it.isIncome == t.isIncome &&
-                Math.abs(it.amount - t.amount) < 0.005 && Math.abs(it.date - t.date) < DUP_WINDOW
+                Math.abs(it.amount - t.amount) < 0.005 && Math.abs(it.date - t.date) < window
         }
         if (dup) return@synchronized false
         var id = t.id

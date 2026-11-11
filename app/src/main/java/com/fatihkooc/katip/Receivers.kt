@@ -8,12 +8,14 @@ import android.provider.Telephony
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 
-private fun save(context: Context, text: String, source: String) {
-    val p = BankParser.parse(text) ?: return
+// E-posta bildirimi, SMS'ten daha geç gelebilir; çift kaydı önlemek için pencere daha geniş.
+private const val MAIL_DUP_WINDOW = 20 * 60 * 1000L
+
+private fun save(context: Context, text: String, source: String, fromMail: Boolean = false) {
+    val p = BankParser.parse(text, fromMail) ?: return
     val now = System.currentTimeMillis()
-    Store(context).addAuto(
-        Txn(now, p.isIncome, p.title, p.amount, p.category, text.trim().take(160), now, source)
-    )
+    val txn = Txn(now, p.isIncome, p.title, p.amount, p.category, text.trim().take(160), now, source)
+    if (fromMail) Store(context).addAuto(txn, MAIL_DUP_WINDOW) else Store(context).addAuto(txn)
 }
 
 class KatipNotificationListener : NotificationListenerService() {
@@ -27,7 +29,10 @@ class KatipNotificationListener : NotificationListenerService() {
         val body = (ex.getCharSequence(Notification.EXTRA_BIG_TEXT)
             ?: ex.getCharSequence(Notification.EXTRA_TEXT))?.toString().orEmpty()
         if (body.isBlank()) return
-        save(applicationContext, "$title $body", "bildirim")
+        save(
+            applicationContext, "$title $body", "bildirim",
+            fromMail = BankParser.isMailPackage(sbn.packageName)
+        )
     }
 }
 
