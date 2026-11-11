@@ -6,7 +6,7 @@ plugins {
 android {
     namespace 'com.fatihkooc.katip'
     compileSdk 35
-    defaultConfig { applicationId 'com.fatihkooc.katip'; minSdk 24; targetSdk 35; versionCode 7; versionName '1.3.3' }
+    defaultConfig { applicationId 'com.fatihkooc.katip'; minSdk 24; targetSdk 35; versionCode 8; versionName '1.4.0' }
     signingConfigs {
         debug {
             storeFile rootProject.file('katip.jks')
