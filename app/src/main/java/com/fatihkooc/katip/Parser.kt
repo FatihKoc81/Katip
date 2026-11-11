@@ -129,8 +129,8 @@ object BankParser {
     }
 
     private fun score(candidate: Candidate, text: String): Int {
-        val from = (candidate.start - 55).coerceAtLeast(0)
-        val to = (candidate.end + 55).coerceAtMost(text.length)
+        val from = (candidate.start - 35).coerceAtLeast(0)
+        val to = (candidate.end + 25).coerceAtMost(text.length)
         val context = normalize(text.substring(from, to))
         var score = 0
         positiveAmountContext.forEach { if (context.contains(it)) score += 3 }
