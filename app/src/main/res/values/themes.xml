@@ -1,4 +1,8 @@
 <resources>
 <style name="Theme.Katip" parent="@android:style/Theme.Material.Light.NoActionBar">
 <item name="android:fontFamily">sans</item><item name="android:statusBarColor">#101A30</item><item name="android:navigationBarColor">#101A30</item><item name="android:windowLightStatusBar">false</item>
+</style>
+<style name="KatipDialog" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+<item name="android:windowBackground">@drawable/dialog_bg</item>
+<item name="android:windowIsFloating">true</item>
 </style></resources>
