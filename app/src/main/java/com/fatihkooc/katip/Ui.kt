@@ -169,13 +169,30 @@ fun KatipApp(resumeTick: Int) {
         Scaffold(
             containerColor = Navy,
             bottomBar = {
-                NavigationBar(containerColor = Card1) {
+                NavigationBar(
+                    containerColor = Color(0xFF101D39),
+                    contentColor = Color.White,
+                    tonalElevation = 0.dp
+                ) {
                     tabs.forEachIndexed { i, (label, glyph) ->
                         NavigationBarItem(
                             selected = tab == i,
                             onClick = { tab = i },
-                            icon = { Text(glyph, fontSize = 18.sp) },
-                            label = { Text(label, fontSize = 11.sp) }
+                            icon = {
+                                Box(
+                                    Modifier.clip(RoundedCornerShape(16.dp))
+                                        .background(if (tab == i) Color(0x334B8CFF) else Color.Transparent)
+                                        .padding(horizontal = 18.dp, vertical = 5.dp)
+                                ) { Text(glyph, fontSize = 20.sp, color = if (tab == i) Color.White else Muted) }
+                            },
+                            label = { Text(label, fontSize = 10.sp, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = Color.White,
+                                unselectedIconColor = Muted,
+                                unselectedTextColor = Muted,
+                                indicatorColor = Color.Transparent
+                            )
                         )
                     }
                 }
