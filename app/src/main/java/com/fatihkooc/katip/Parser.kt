@@ -8,8 +8,9 @@ object BankParser {
     private val amountB = Regex("""(?:TL|TRY|₺)\s*""" + NUM, RegexOption.IGNORE_CASE)
 
     // Destekli faturalarda toplam tüketim bedeli değil, müşterinin ödeyeceği net tutar seçilir.
+    // Net ödenecek tutarı, para birimi yazılmasa bile etiketin yakınındaki sayıdan bul.
     private val payableAmount = Regex(
-        """(?:ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödenecek(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödeyeceğiniz\s+tutar|sizin\s+ödeyeceğiniz\s+tutar|senin\s+ödeyeceğin(?:\s+tutar)?)\D{0,100}""" + NUM + """\s*(?:TL|TRY|₺)""",
+        """(?:senin\s+ödeyeceğin(?:\s+tutar)?|sizin\s+ödeyeceğiniz(?:\s+tutar)?|ödeyeceğiniz\s+tutar|ödenecek(?:\s+fatura)?\s+tutar[ıi]?|ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|müşterinin\s+ödeyeceği(?:\s+tutar)?)\D{0,100}""" + NUM + """\s*(?:TL|TRY|₺)?""",
         RegexOption.IGNORE_CASE
     )
     private val thousands = Regex("""^\d{1,3}(\.\d{3})+$""")
@@ -79,15 +80,20 @@ object BankParser {
 
     /** fromMail = true ise daha katı kurallar uygulanır (pazarlama e-postalarını kaydetmemek için). */
     fun parse(text: String, fromMail: Boolean = false): Parsed? {
-        // Önce açıkça belirtilen ödenecek tutarı ara; destek ve toplam bedel karışmasın.
+        val n = Categories.norm(text)
+        // Devlet desteği içeren faturada net tutar etiketini bulamazsak yanlış brüt tutarı ASLA ekleme.
+        val supportedBill = n.contains("devlet destegi") ||
+            n.contains("enerji destegi") ||
+            n.contains("tuketim bedeli") ||
+            n.contains("sepas")
         val payable = payableAmount.find(text)
+        if (supportedBill && payable == null) return null
+
         val a = amountA.find(text)
         val b = amountB.find(text)
         val m = payable ?: listOfNotNull(a, b).minByOrNull { it.range.first } ?: return null
         val value = toDouble(m.groupValues[1]) ?: return null
         if (value <= 0.0) return null
-
-        val n = Categories.norm(text)
         if (reject.any { n.contains(it) }) return null
         if (fromMail && rejectMail.any { n.contains(it) }) return null
         val hasSpend = payable != null || strongSpend.any { n.contains(it) }
