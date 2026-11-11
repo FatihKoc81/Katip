@@ -238,28 +238,41 @@ fun KatipApp(resumeTick: Int) {
         Scaffold(
             containerColor = Navy,
             bottomBar = {
-                Box(Modifier.fillMaxWidth().background(Color(0xFF020B1C)).navigationBarsPadding().padding(horizontal = 9.dp, vertical = 4.dp)) {
+                Box(
+                    Modifier.fillMaxWidth().background(Color(0xFF020B1C)).navigationBarsPadding()
+                        .padding(horizontal = 13.dp, vertical = 5.dp)
+                ) {
                     Row(
-                        Modifier.fillMaxWidth().height(72.dp).clip(RoundedCornerShape(27.dp))
-                            .background(Brush.verticalGradient(listOf(Color(0xFF102B4C), Color(0xFF071A33), Color(0xFF06152B)))),
+                        Modifier.fillMaxWidth().height(91.dp).clip(RoundedCornerShape(38.dp))
+                            .background(Brush.verticalGradient(listOf(Color(0xFF12345A), Color(0xFF071D3A), Color(0xFF06152D)))),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         BottomNavItem("⌂", "Ana Sayfa", tab == 0, Modifier.weight(1f)) { tab = 0 }
                         BottomNavItem("⇄", "İşlemler", tab == 1, Modifier.weight(1f)) { tab = 1 }
                         Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                            Box(Modifier.size(62.dp).clip(CircleShape)
-                                .background(Brush.radialGradient(listOf(Color(0xFF32E7FF), Color(0xFF087BFF), Color(0xFF0347C7))))
-                                .clickable { editing = null; pendingToEdit = null; showDialog = true }, contentAlignment = Alignment.Center) {
-                                Text("+", color = Color.White, fontSize = 39.sp, fontWeight = FontWeight.Light)
+                            Box(
+                                Modifier.size(86.dp).clip(CircleShape)
+                                    .background(Brush.radialGradient(listOf(Color(0xFF70F5FF), Color(0xFF12BFFF), Color(0xFF0872FF), Color(0xFF0343B9))))
+                                    .clickable { editing = null; pendingToEdit = null; showDialog = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Canvas(Modifier.matchParentSize()) {
+                                    drawCircle(Color(0xFF21DFFF).copy(alpha = .42f), radius = size.minDimension * .49f, style = Stroke(3.dp.toPx()))
+                                    drawCircle(Color.White.copy(alpha = .22f), radius = size.minDimension * .43f, style = Stroke(1.dp.toPx()))
+                                }
+                                Text("+", color = Color.White, fontSize = 54.sp, fontWeight = FontWeight.Light)
                             }
                         }
                         BottomNavItem("▥", "Raporlar", tab == 2, Modifier.weight(1f)) { tab = 2 }
                         BottomNavItem("♙", "Profil", tab == 3, Modifier.weight(1f)) { tab = 3 }
                     }
                     Canvas(Modifier.matchParentSize()) {
-                        drawRoundRect(Brush.linearGradient(listOf(Color(0xFF1DCBFF), Color(0xFF254D8D), Color(0xFF19CFFF))),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(27.dp.toPx()), style = Stroke(1.4.dp.toPx()))
+                        drawRoundRect(
+                            Brush.linearGradient(listOf(Color(0xFF35E8FF), Color(0xFF1476D5), Color(0xFF2CEBFF))),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(38.dp.toPx()),
+                            style = Stroke(1.8.dp.toPx())
+                        )
                     }
                 }
             }
@@ -499,55 +512,59 @@ private fun BottomNavItem(
     modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     Column(
-        modifier.clip(RoundedCornerShape(19.dp))
-            .background(if (selected) Brush.verticalGradient(listOf(Color(0xFF075EAB).copy(alpha = .72f), Color(0xFF08294C).copy(alpha = .88f))) else Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent)))
-            .clickable(onClick = onClick).padding(vertical = 5.dp),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+        modifier.clip(RoundedCornerShape(25.dp))
+            .background(
+                if (selected) Brush.verticalGradient(listOf(Color(0xFF0879D7).copy(alpha = .88f), Color(0xFF064B91).copy(alpha = .80f), Color(0xFF062D5D).copy(alpha = .50f)))
+                else Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
+            )
+            .clickable(onClick = onClick).padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Canvas(Modifier.size(27.dp)) {
-            val tint = if (selected) Color(0xFF29DFFF) else Color(0xFFB5CBE5)
-            val sw = 2.dp.toPx()
+        Canvas(Modifier.size(31.dp)) {
+            val tint = if (selected) Color(0xFF28E4FF) else Color(0xFFB5CBE5)
+            val sw = 2.1.dp.toPx()
             when (glyph) {
                 "⌂" -> {
                     val p = Path().apply {
-                        moveTo(size.width * .14f, size.height * .47f)
-                        lineTo(size.width * .50f, size.height * .14f)
-                        lineTo(size.width * .86f, size.height * .47f)
-                        lineTo(size.width * .80f, size.height * .47f)
-                        lineTo(size.width * .80f, size.height * .88f)
-                        lineTo(size.width * .57f, size.height * .88f)
-                        lineTo(size.width * .57f, size.height * .62f)
-                        lineTo(size.width * .42f, size.height * .62f)
-                        lineTo(size.width * .42f, size.height * .88f)
-                        lineTo(size.width * .20f, size.height * .88f)
-                        lineTo(size.width * .20f, size.height * .47f)
+                        moveTo(size.width * .12f, size.height * .46f)
+                        lineTo(size.width * .50f, size.height * .12f)
+                        lineTo(size.width * .88f, size.height * .46f)
+                        lineTo(size.width * .80f, size.height * .46f)
+                        lineTo(size.width * .80f, size.height * .90f)
+                        lineTo(size.width * .57f, size.height * .90f)
+                        lineTo(size.width * .57f, size.height * .64f)
+                        lineTo(size.width * .43f, size.height * .64f)
+                        lineTo(size.width * .43f, size.height * .90f)
+                        lineTo(size.width * .20f, size.height * .90f)
+                        lineTo(size.width * .20f, size.height * .46f)
                         close()
                     }
                     drawPath(p, tint, style = Stroke(sw, cap = StrokeCap.Round, join = PathJoin.Round))
                 }
                 "⇄" -> {
-                    drawLine(tint, Offset(size.width * .18f, size.height * .34f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
-                    drawLine(tint, Offset(size.width * .67f, size.height * .18f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
-                    drawLine(tint, Offset(size.width * .67f, size.height * .50f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
-                    drawLine(tint, Offset(size.width * .82f, size.height * .67f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
-                    drawLine(tint, Offset(size.width * .33f, size.height * .51f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
-                    drawLine(tint, Offset(size.width * .33f, size.height * .83f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .14f, size.height * .34f), Offset(size.width * .84f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .68f, size.height * .17f), Offset(size.width * .84f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .68f, size.height * .51f), Offset(size.width * .84f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .86f, size.height * .67f), Offset(size.width * .16f, size.height * .67f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .32f, size.height * .50f), Offset(size.width * .16f, size.height * .67f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .32f, size.height * .84f), Offset(size.width * .16f, size.height * .67f), sw, cap = StrokeCap.Round)
                 }
                 "▥" -> {
                     drawLine(tint, Offset(size.width * .12f, size.height * .88f), Offset(size.width * .90f, size.height * .88f), sw, cap = StrokeCap.Round)
-                    listOf(.28f, .48f, .68f).forEachIndexed { i, x ->
-                        val top = listOf(.54f, .32f, .14f)[i]
-                        drawRoundRect(tint, Offset(size.width * x, size.height * top), Size(size.width * .12f, size.height * (.88f-top)), androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+                    listOf(.25f, .46f, .67f).forEachIndexed { i, x ->
+                        val top = listOf(.56f, .34f, .13f)[i]
+                        drawRoundRect(tint, Offset(size.width * x, size.height * top), Size(size.width * .13f, size.height * (.88f-top)), androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
                     }
                 }
                 else -> {
-                    drawCircle(tint, radius = size.width * .17f, center = Offset(size.width * .50f, size.height * .28f), style = Stroke(sw))
-                    drawArc(tint, 200f, 140f, false, Offset(size.width * .15f, size.height * .43f), Size(size.width * .70f, size.height * .52f), style = Stroke(sw, cap = StrokeCap.Round))
+                    drawCircle(tint, radius = size.width * .18f, center = Offset(size.width * .50f, size.height * .27f), style = Stroke(sw))
+                    drawArc(tint, 200f, 140f, false, Offset(size.width * .13f, size.height * .43f), Size(size.width * .74f, size.height * .52f), style = Stroke(sw, cap = StrokeCap.Round))
                 }
             }
         }
-        Spacer(Modifier.height(1.dp))
-        Text(label, color = if (selected) Color.White else Color(0xFFB5CBE5), fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+        Spacer(Modifier.height(4.dp))
+        Text(label, color = if (selected) Color.White else Color(0xFFB5CBE5), fontSize = 10.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
     }
 }
 
@@ -617,16 +634,25 @@ private fun HomeScreen(
         item {
             Row(Modifier.fillMaxWidth().height(51.dp), verticalAlignment = Alignment.CenterVertically) {
                 Canvas(Modifier.size(49.dp)) {
-                    val cyan = Color(0xFF19DFFF)
-                    val blue = Color(0xFF237BFF)
-                    val sw = 2.8.dp.toPx()
-                    val glow = Brush.linearGradient(listOf(cyan.copy(alpha = .25f), cyan, blue))
-                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw * 1.65f)
-                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw)
-                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw * 1.55f)
-                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw)
-                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw * 2.4f)
-                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw)
+                    val cyan = Color(0xFF18E6FF)
+                    val blue = Color(0xFF087BFF)
+                    val glow = Brush.linearGradient(listOf(Color(0xFF00CFFF), cyan, blue))
+                    val a = Offset(size.width * .18f, size.height * .06f)
+                    val b = Offset(size.width * .18f, size.height * .94f)
+                    val joint = Offset(size.width * .31f, size.height * .50f)
+                    val upper = Offset(size.width * .88f, size.height * .08f)
+                    val lower = Offset(size.width * .88f, size.height * .92f)
+                    listOf(9.dp.toPx(), 5.dp.toPx()).forEachIndexed { i, w ->
+                        val alpha = if (i == 0) .13f else .22f
+                        drawLine(cyan.copy(alpha = alpha), a, b, w, cap = StrokeCap.Round)
+                        drawLine(cyan.copy(alpha = alpha), joint, upper, w, cap = StrokeCap.Round)
+                        drawLine(cyan.copy(alpha = alpha), joint, lower, w, cap = StrokeCap.Round)
+                    }
+                    val sw = 3.1.dp.toPx()
+                    drawLine(glow, a, b, sw, cap = StrokeCap.Square)
+                    drawLine(glow, joint, upper, sw, cap = StrokeCap.Round)
+                    drawLine(glow, joint, lower, sw, cap = StrokeCap.Round)
+                    drawLine(Color(0xFF8AF7FF).copy(alpha = .9f), Offset(size.width * .23f, size.height * .08f), Offset(size.width * .23f, size.height * .92f), 1.dp.toPx())
                 }
                 Spacer(Modifier.width(7.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(0.dp)) {
