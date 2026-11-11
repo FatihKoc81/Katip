@@ -54,17 +54,17 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private val Navy = Color(0xFF14213A)
-private val Card1 = Color(0xFF1D304F)
-private val Card2 = Color(0xFF294A78)
+private val Navy = Color(0xFF090F1E)
+private val Card1 = Color(0xFF121E33)
+private val Card2 = Color(0xFF1A2B47)
 private val Blue = Color(0xFF568FFF)
 private val Green = Color(0xFF42DDB5)
 private val Red = Color(0xFFFF7185)
 private val Amber = Color(0xFFFFC66D)
 private val Muted = Color(0xFFB8C8E3)
-private val Edge = Color(0xFF3A5275)
-private val HeroBrush = Brush.linearGradient(listOf(Color(0xFF386DB4), Color(0xFF294A78), Color(0xFF1D355D)))
-private val ScreenBrush = Brush.verticalGradient(listOf(Color(0xFF172844), Color(0xFF14213A), Color(0xFF192B48)))
+private val Edge = Color(0xFF2A3B57)
+private val HeroBrush = Brush.linearGradient(listOf(Color(0xFF17345C), Color(0xFF10223F), Color(0xFF0E1A30)))
+private val ScreenBrush = Brush.verticalGradient(listOf(Color(0xFF101B30), Color(0xFF090F1E), Color(0xFF0D1729)))
 private val Palette = listOf(
     Color(0xFF477BFF), Color(0xFF3DDC97), Color(0xFFFFC66D), Color(0xFFB66DFF), Color(0xFFFF6B6B),
     Color(0xFF4FD1E8), Color(0xFFFF9F5A), Color(0xFF9BE15D), Color(0xFF8A94A6)
@@ -226,38 +226,48 @@ fun KatipApp(resumeTick: Int) {
             containerColor = Navy,
             bottomBar = {
                 NavigationBar(
-                    containerColor = Color(0xFF101D39),
+                    containerColor = Color(0xFF0B1426),
                     contentColor = Color.White,
                     tonalElevation = 0.dp
                 ) {
-                    tabs.forEachIndexed { i, (label, glyph) ->
-                        NavigationBarItem(
-                            selected = tab == i,
-                            onClick = { tab = i },
-                            icon = {
-                                Box(
-                                    Modifier.clip(RoundedCornerShape(16.dp))
-                                        .background(if (tab == i) Color(0x334B8CFF) else Color.Transparent)
-                                        .padding(horizontal = 18.dp, vertical = 5.dp)
-                                ) { Text(glyph, fontSize = 20.sp, color = if (tab == i) Color.White else Muted) }
-                            },
-                            label = { Text(label, fontSize = 10.sp, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.White,
-                                selectedTextColor = Color.White,
-                                unselectedIconColor = Muted,
-                                unselectedTextColor = Muted,
-                                indicatorColor = Color.Transparent
-                            )
-                        )
-                    }
-                }
-            },
-            floatingActionButton = {
-                if (tab == 0 || tab == 1) {
-                    FloatingActionButton(onClick = { editing = null; pendingToEdit = null; showDialog = true }, containerColor = Blue) {
-                        Text("+", fontSize = 28.sp, color = Color.White)
-                    }
+                    val navColors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Muted,
+                        unselectedTextColor = Muted,
+                        indicatorColor = Color.Transparent
+                    )
+                    NavigationBarItem(
+                        selected = tab == 0, onClick = { tab = 0 },
+                        icon = { Text("⌂", fontSize = 21.sp, color = if (tab == 0) Color.White else Muted) },
+                        label = { Text("Ana Sayfa", fontSize = 9.sp) }, colors = navColors
+                    )
+                    NavigationBarItem(
+                        selected = tab == 1, onClick = { tab = 1 },
+                        icon = { Text("⇄", fontSize = 21.sp, color = if (tab == 1) Color.White else Muted) },
+                        label = { Text("İşlemler", fontSize = 9.sp) }, colors = navColors
+                    )
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = { editing = null; pendingToEdit = null; showDialog = true },
+                        icon = {
+                            Box(Modifier.size(42.dp).clip(CircleShape).background(Blue), contentAlignment = Alignment.Center) {
+                                Text("+", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Medium)
+                            }
+                        },
+                        label = { Text("Ekle", fontSize = 9.sp, color = Muted) },
+                        colors = navColors
+                    )
+                    NavigationBarItem(
+                        selected = tab == 2, onClick = { tab = 2 },
+                        icon = { Text("◷", fontSize = 21.sp, color = if (tab == 2) Color.White else Muted) },
+                        label = { Text("Raporlar", fontSize = 9.sp) }, colors = navColors
+                    )
+                    NavigationBarItem(
+                        selected = tab == 3, onClick = { tab = 3 },
+                        icon = { Text("⚙", fontSize = 20.sp, color = if (tab == 3) Color.White else Muted) },
+                        label = { Text("Ayarlar", fontSize = 9.sp) }, colors = navColors
+                    )
                 }
             }
         ) { padding ->
@@ -387,10 +397,10 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
             if (rows.isEmpty()) Text("Bu dönemde harcama yok.", color = Muted, fontSize = 13.sp)
             else if (compact) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Donut(rows, Modifier.size(104.dp))
+                    Donut(rows, Modifier.size(132.dp))
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        rows.take(4).forEach { (cat, value) ->
+                        rows.take(5).forEach { (cat, value) ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(9.dp).clip(CircleShape).background(catColor(cat)))
                                 Spacer(Modifier.width(7.dp))
@@ -401,7 +411,7 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
                                 Text("%" + (value / total * 100).toInt(), fontSize = 11.sp, color = Muted)
                             }
                         }
-                        if (rows.size > 4) Text("+" + (rows.size - 4) + " kategori daha", color = Muted, fontSize = 10.sp)
+                        if (rows.size > 5) Text("+" + (rows.size - 5) + " kategori daha", color = Muted, fontSize = 10.sp)
                     }
                 }
             } else {
@@ -494,84 +504,68 @@ private fun HomeScreen(
     val exp = month.filterNot { it.isIncome }.sumOf { it.amount }
     val balance = txns.sumOf { if (it.isIncome) it.amount else -it.amount }
     val remaining = budget - exp
-    val ratio = if (budget > 0) (exp / budget).toFloat() else 0f
+    val ratio = if (budget > 0) (exp / budget).toFloat().coerceIn(0f, 1f) else 0f
 
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 4.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(9.dp)
+        contentPadding = PaddingValues(start = 15.dp, end = 15.dp, top = 7.dp, bottom = 22.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Row(Modifier.fillMaxWidth().heightIn(min = 42.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Blue), contentAlignment = Alignment.Center) {
-                        Text("₺", fontSize = 22.sp, color = Color.White, fontWeight = FontWeight.ExtraBold)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy((-2).dp)) {
-                        Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp, fontSize = 19.sp)
-                        Text("Finansal kontrol panelin", fontSize = 10.sp, color = Muted)
+            Row(Modifier.fillMaxWidth().heightIn(min = 46.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("K", fontSize = 31.sp, fontWeight = FontWeight.Light, color = Color(0xFFB8D8FF))
+                    Column(verticalArrangement = Arrangement.spacedBy((-3).dp)) {
+                        Text("KÂTİP", fontWeight = FontWeight.SemiBold, letterSpacing = 2.3.sp, fontSize = 18.sp)
+                        Text("Paranın kontrolü sende.", fontSize = 10.sp, color = Muted)
                     }
                 }
-                IconButton(onClick = onCheckUpdate, modifier = Modifier.size(38.dp).clip(CircleShape).background(Color(0xFF2B4C7A)), enabled = !updateBusy) {
-                    Text(if (updateBusy) "…" else "↻", color = Color.White, fontSize = 21.sp)
+                IconButton(onClick = onCheckUpdate, modifier = Modifier.size(38.dp), enabled = !updateBusy) {
+                    Text(if (updateBusy) "…" else "⋯", color = Muted, fontSize = 24.sp)
                 }
             }
         }
-        if (updateMessage.isNotBlank()) item { Text(updateMessage, color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
+        if (updateMessage.isNotBlank()) item { Text(updateMessage, color = Muted, fontSize = 11.sp) }
         item {
-            Card(shape = RoundedCornerShape(23.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
-                Box(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF3478C9), Color(0xFF25456F), Color(0xFF1D3558))), RoundedCornerShape(23.dp))) {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 15.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-                            Column(Modifier.weight(1f)) {
-                                Text("TOPLAM BAKİYE", color = Color(0xFFD0E1FA), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
-                                Spacer(Modifier.height(5.dp))
-                                Text(money(balance), fontSize = if (money(balance).length > 13) 25.sp else 30.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
-                            }
-                            Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0x334B8CFF)), contentAlignment = Alignment.Center) {
-                                Text("₺", fontSize = 23.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                            }
+            Card(
+                shape = RoundedCornerShape(22.dp),
+                border = BorderStroke(1.dp, Color(0xFF30496B)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF142541))
+            ) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Column(Modifier.weight(1.1f)) {
+                            Text("TOPLAM BAKİYE", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Spacer(Modifier.height(7.dp))
+                            Text(money(balance), fontSize = if (money(balance).length > 13) 22.sp else 27.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                            Text(p.label, color = Muted, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
                         }
-                        Spacer(Modifier.height(9.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(6.dp).clip(CircleShape).background(Green))
-                            Spacer(Modifier.width(6.dp))
-                            Text(p.label + "  ·  Net " + money(inc - exp), color = Color(0xFFD0E1FA), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Column(Modifier.weight(0.9f)) {
+                            Text("AYLIK BÜTÇE", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                            Spacer(Modifier.height(7.dp))
+                            Text(if (budget > 0) money(budget) else "Belirlenmedi", fontSize = 19.sp, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                            Text(if (budget > 0) "Kalan " + money(remaining) else "Ayarlar bölümünden belirle", color = Muted, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
+                    Box(Modifier.fillMaxWidth().height(5.dp).clip(CircleShape).background(Color(0xFF34445E))) {
+                        Box(Modifier.fillMaxWidth(ratio).fillMaxHeight().clip(CircleShape).background(Brush.horizontalGradient(listOf(Color(0xFF4A9DFF), Color(0xFF54D5D0)))))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Gelir  " + money(inc), color = Green, fontSize = 10.sp)
+                        Text("Gider  " + money(exp), color = Red, fontSize = 10.sp)
+                    }
                 }
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard("GELİR", money(inc), Green, Modifier.weight(1f))
-                StatCard("GİDER", money(exp), Red, Modifier.weight(1f))
-                StatCard("BÜTÇE KALAN", if (budget > 0) money(remaining) else "Ayarlanmadı", if (remaining >= 0) Green else Red, Modifier.weight(1f))
             }
         }
         if (!autoOk) {
             item {
-                Card(shape = RoundedCornerShape(15.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF3A2A1A))) {
+                Card(shape = RoundedCornerShape(15.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF33291F))) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 13.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Otomatik takip kapalı", fontWeight = FontWeight.Bold, color = Amber, fontSize = 12.sp)
-                            Text("Banka bildirimleri için izin ver.", fontSize = 11.sp, color = Muted)
+                            Text("Banka bildirimleri için izin ver.", fontSize = 10.sp, color = Muted)
                         }
                         TextButton(onClick = onSettings) { Text("Aç", fontSize = 12.sp) }
-                    }
-                }
-            }
-        }
-        if (budget > 0) {
-            item {
-                Card(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Aylık bütçe", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            Text(money(exp) + " / " + money(budget), fontSize = 10.sp, color = Muted, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
-                        }
-                        Bar(ratio, if (ratio >= 1f) Red else if (ratio >= 0.8f) Amber else Green)
-                        Text(if (remaining < 0) "Limit " + money(-remaining) + " aşıldı" else "Kalan: " + money(remaining), fontSize = 11.sp, color = if (remaining < 0) Red else Muted)
                     }
                 }
             }
@@ -579,12 +573,15 @@ private fun HomeScreen(
         item { CategoryBlock(month.expenseByCategory(), compact = true) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Son işlemler", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                TextButton(onClick = onSeeAll) { Text("Tümünü gör", fontSize = 12.sp) }
+                Column {
+                    Text("Son işlemler", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("En son hareketlerin", fontSize = 10.sp, color = Muted)
+                }
+                TextButton(onClick = onSeeAll) { Text("Tümünü gör", fontSize = 11.sp) }
             }
         }
-        if (txns.isEmpty()) item { Text("Henüz işlem yok. + düğmesiyle ekle ya da otomatik takibi aç.", color = Muted, fontSize = 12.sp) }
-        else items(txns.take(4), key = { it.id }) { t -> TxnRow(t) { onEdit(t) } }
+        if (txns.isEmpty()) item { Text("Henüz işlem yok. Ortadaki + düğmesiyle ekleyebilirsin.", color = Muted, fontSize = 12.sp) }
+        else items(txns.take(5), key = { it.id }) { t -> TxnRow(t) { onEdit(t) } }
     }
 }
 @Composable
