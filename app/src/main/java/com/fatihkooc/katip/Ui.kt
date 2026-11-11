@@ -747,7 +747,7 @@ private fun SettingsScreen(
                         if (r == null) sampleResult = "Bu metinde harcama veya gelir bulunamadı."
                         else {
                             val now = System.currentTimeMillis()
-                            store.add(Txn(now, r.isIncome, r.title, r.amount, r.category, sample.trim().take(160), now, "deneme"))
+                            store.add(Txn(now, r.isIncome, r.title, r.amount, r.category, sample.trim().take(1000), now, "deneme"))
                             sampleResult = (if (r.isIncome) "Gelir" else "Gider") + " eklendi: " + money(r.amount) + " • " + r.category
                             sample = ""
                         }
