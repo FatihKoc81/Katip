@@ -214,7 +214,7 @@ fun KatipApp(resumeTick: Int) {
     }
 
     val autoOk = remember(tick) { notifAccess(ctx) || smsGranted(ctx) }
-    val tabs = listOf("Ana Sayfa" to "⌂", "İşlemler" to "≡", "Raporlar" to "◔", "Ayarlar" to "⚙")
+    val tabs = listOf("Ana Sayfa" to "⌂", "İşlemler" to "≡", "Raporlar" to "◔", "Profil" to "⚙")
 
     MaterialTheme(
         colorScheme = darkColorScheme(
@@ -248,7 +248,7 @@ fun KatipApp(resumeTick: Int) {
                             }
                         }
                         BottomNavItem("◷", "Raporlar", tab == 2, Modifier.weight(1f)) { tab = 2 }
-                        BottomNavItem("⚙", "Ayarlar", tab == 3, Modifier.weight(1f)) { tab = 3 }
+                        BottomNavItem("⚙", "Profil", tab == 3, Modifier.weight(1f)) { tab = 3 }
                     }
                 }
             }
@@ -293,6 +293,35 @@ fun KatipApp(resumeTick: Int) {
                     2 -> ReportScreen(txns)
                     else -> SettingsScreen(
                         store, budget, tick,
+                        updateBusy = updateBusy,
+                        updateMessage = updateMessage,
+                        onCheckUpdate = {
+                            if (!updateBusy) {
+                                updateBusy = true
+                                updateMessage = "Güncellemeler denetleniyor…"
+                                updateScope.launch {
+                                    val result = withContext(Dispatchers.IO) {
+                                        runCatching { checkLatestUpdate() }.getOrNull()
+                                    }
+                                    updateBusy = false
+                                    if (result == null) {
+                                        updateMessage = "Sürüm bilgisi alınamadı. İnternet bağlantını kontrol et."
+                                    } else {
+                                        val installed = try {
+                                            val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+                                            if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+                                        } catch (_: Exception) { 0L }
+                                        if (result.versionCode > installed) {
+                                            runCatching { downloadUpdate(ctx, result.apkUrl) }
+                                                .onSuccess { updateMessage = "Yeni sürüm bulundu. APK indiriliyor; tamamlanınca bildirime dokunup kurulumu onayla." }
+                                                .onFailure { updateMessage = "İndirme başlatılamadı: " + (it.message ?: "hata") }
+                                        } else {
+                                            updateMessage = "Kâtip güncel. Yeni sürüm bulunamadı."
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         onBump = { localTick++ },
                         onBudget = { store.setBudget(it); budget = it }
                     )
@@ -696,6 +725,7 @@ private fun ReportScreen(txns: List<Txn>) {
 @Composable
 private fun SettingsScreen(
     store: Store, budget: Double, tick: Int,
+    updateBusy: Boolean, updateMessage: String, onCheckUpdate: () -> Unit,
     onBump: () -> Unit, onBudget: (Double) -> Unit
 ) {
     val ctx = LocalContext.current
@@ -715,7 +745,44 @@ private fun SettingsScreen(
         contentPadding = PaddingValues(16.dp, 8.dp, 16.dp, 96.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        item { Text("Ayarlar", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold) }
+        item {
+            Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Profil", fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text("Kâtip • Kişisel bütçe asistanın", fontSize = 12.sp, color = Muted)
+            }
+        }
+        item {
+            Card(
+                shape = RoundedCornerShape(22.dp),
+                border = BorderStroke(1.dp, Color(0xFF38577E)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF172B49))
+            ) {
+                Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFF294B78)), contentAlignment = Alignment.Center) {
+                            Text("↻", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text("Kâtip güncellemesi", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                            Text("Yüklü sürüm: " + appVersion(ctx), fontSize = 11.sp, color = Muted)
+                        }
+                    }
+                    Text("Tek dokunuşla yeni sürümü denetle. Yeni APK bulunursa indirme otomatik başlar.", fontSize = 12.sp, color = Muted)
+                    Button(
+                        onClick = onCheckUpdate,
+                        enabled = !updateBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(15.dp)
+                    ) {
+                        Text(if (updateBusy) "Denetleniyor…" else "GÜNCELLEMEYİ DENETLE", fontWeight = FontWeight.Bold)
+                    }
+                    if (updateMessage.isNotBlank()) {
+                        Text(updateMessage, color = if (updateMessage.contains("güncel", true)) Green else Muted, fontSize = 12.sp)
+                    }
+                    Text("Android güvenliği nedeniyle kurulum aşamasında son onay telefonda istenir.", fontSize = 10.sp, color = Muted)
+                }
+            }
+        }
         item {
             Card(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -806,26 +873,6 @@ private fun SettingsScreen(
                         }
                     }) { Text("Ayrıştır ve doğrula") }
                     if (sampleResult.isNotBlank()) Text(sampleResult, fontSize = 13.sp)
-                }
-            }
-        }
-
-        item {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Güncelleme", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text("Yüklü sürüm: " + appVersion(ctx), fontSize = 13.sp, color = Muted)
-                    Text(
-                        "Yeni sürüm GitHub'daki Releases sayfasında yayınlanır. İndirdikten sonra APK'yı açıp yükle; verilerin korunur.",
-                        fontSize = 12.sp, color = Muted
-                    )
-                    Button(onClick = {
-                        updateMsg = if (openLink(ctx, APK_URL)) "" else "Tarayıcı açılamadı."
-                    }) { Text("Son sürümü indir") }
-                    OutlinedButton(onClick = {
-                        updateMsg = if (openLink(ctx, RELEASES_URL)) "" else "Tarayıcı açılamadı."
-                    }) { Text("Sürümler sayfasını aç") }
-                    if (updateMsg.isNotBlank()) Text(updateMsg, fontSize = 13.sp, color = Red)
                 }
             }
         }
