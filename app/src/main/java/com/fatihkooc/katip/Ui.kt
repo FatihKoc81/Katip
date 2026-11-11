@@ -494,7 +494,6 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
 }
 
 @Composable
-@Composable
 private fun BottomNavItem(
     glyph: String, label: String, selected: Boolean,
     modifier: Modifier = Modifier, onClick: () -> Unit
