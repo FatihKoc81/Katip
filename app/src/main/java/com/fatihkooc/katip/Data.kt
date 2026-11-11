@@ -86,7 +86,7 @@ class Store(context: Context) {
         // Sepaş'ın eski SMS kaydında tüketim bedeli seçilmişse, müşterinin ödeyeceği net tutarla düzelt.
         val repaired = rows.map { t ->
             if (!t.isIncome &&
-                (t.source == "bildirim" || t.source == "sms") &&
+                (t.source == "bildirim" || t.source == "sms" || t.source == "deneme") &&
                 Regex("""senin\s+ödeyeceğin""", RegexOption.IGNORE_CASE).containsMatchIn(t.note)
             ) {
                 val parsed = BankParser.parse(t.note)
