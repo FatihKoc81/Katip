@@ -436,7 +436,7 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
                 Box(Modifier.fillMaxWidth().height(if (compact) 90.dp else 145.dp), contentAlignment = Alignment.Center) { Text("Bu dönemde henüz harcama yok.", color = Muted, fontSize = 11.sp) }
             } else {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val donutSize = if (compact) 150.dp else 158.dp
+                    val donutSize = if (compact) 132.dp else 158.dp
                     Box(Modifier.size(donutSize), contentAlignment = Alignment.Center) {
                         Donut(rows, Modifier.fillMaxSize())
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -447,7 +447,7 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                         rows.sortedByDescending { it.second }.take(if (compact) 2 else 4).forEach { (cat, value) ->
-                            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFF102F51)).padding(horizontal = 8.dp, vertical = if (compact) 8.dp else 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFF102F51)).padding(horizontal = 8.dp, vertical = if (compact) 6.dp else 9.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(10.dp).clip(CircleShape).background(catColor(cat)))
                                 Spacer(Modifier.width(7.dp))
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -463,8 +463,8 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
                         if (rows.size > (if (compact) 2 else 4)) Text("+" + (rows.size - if (compact) 2 else 4) + " kategori daha", color = Color(0xFF8FAED3), fontSize = 8.sp)
                     }
                 }
-                Spacer(Modifier.height(if (compact) 8.dp else 14.dp))
-                Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(Color(0xFF294867))) {
+                Spacer(Modifier.height(if (compact) 6.dp else 14.dp))
+                Box(Modifier.fillMaxWidth().height(if (compact) 6.dp else 8.dp).clip(CircleShape).background(Color(0xFF294867))) {
                     Row(Modifier.fillMaxSize()) {
                         rows.sortedByDescending { it.second }.forEach { (cat, value) ->
                             Box(Modifier.weight((value / total).toFloat().coerceAtLeast(0.001f)).fillMaxHeight().background(catColor(cat)))
@@ -504,8 +504,47 @@ private fun BottomNavItem(
             .clickable(onClick = onClick).padding(vertical = 5.dp),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
     ) {
-        Box(Modifier.size(35.dp).clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-            Text(glyph, color = if (selected) Color(0xFF29DFFF) else Color(0xFFB5CBE5), fontSize = 24.sp)
+        Canvas(Modifier.size(27.dp)) {
+            val tint = if (selected) Color(0xFF29DFFF) else Color(0xFFB5CBE5)
+            val sw = 2.dp.toPx()
+            when (glyph) {
+                "⌂" -> {
+                    val p = Path().apply {
+                        moveTo(size.width * .14f, size.height * .47f)
+                        lineTo(size.width * .50f, size.height * .14f)
+                        lineTo(size.width * .86f, size.height * .47f)
+                        lineTo(size.width * .80f, size.height * .47f)
+                        lineTo(size.width * .80f, size.height * .88f)
+                        lineTo(size.width * .57f, size.height * .88f)
+                        lineTo(size.width * .57f, size.height * .62f)
+                        lineTo(size.width * .42f, size.height * .62f)
+                        lineTo(size.width * .42f, size.height * .88f)
+                        lineTo(size.width * .20f, size.height * .88f)
+                        lineTo(size.width * .20f, size.height * .47f)
+                        close()
+                    }
+                    drawPath(p, tint, style = Stroke(sw, cap = StrokeCap.Round, join = PathJoin.Round))
+                }
+                "⇄" -> {
+                    drawLine(tint, Offset(size.width * .18f, size.height * .34f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .67f, size.height * .18f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .67f, size.height * .50f), Offset(size.width * .82f, size.height * .34f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .82f, size.height * .67f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .33f, size.height * .51f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
+                    drawLine(tint, Offset(size.width * .33f, size.height * .83f), Offset(size.width * .18f, size.height * .67f), sw, cap = StrokeCap.Round)
+                }
+                "▥" -> {
+                    drawLine(tint, Offset(size.width * .12f, size.height * .88f), Offset(size.width * .90f, size.height * .88f), sw, cap = StrokeCap.Round)
+                    listOf(.28f, .48f, .68f).forEachIndexed { i, x ->
+                        val top = listOf(.54f, .32f, .14f)[i]
+                        drawRoundRect(tint, Offset(size.width * x, size.height * top), Size(size.width * .12f, size.height * (.88f-top)), androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+                    }
+                }
+                else -> {
+                    drawCircle(tint, radius = size.width * .17f, center = Offset(size.width * .50f, size.height * .28f), style = Stroke(sw))
+                    drawArc(tint, 200f, 140f, false, Offset(size.width * .15f, size.height * .43f), Size(size.width * .70f, size.height * .52f), style = Stroke(sw, cap = StrokeCap.Round))
+                }
+            }
         }
         Spacer(Modifier.height(1.dp))
         Text(label, color = if (selected) Color.White else Color(0xFFB5CBE5), fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
@@ -577,14 +616,14 @@ private fun HomeScreen(
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 11.dp, end = 11.dp, top = 1.dp, bottom = 88.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         item {
             Row(Modifier.fillMaxWidth().height(51.dp), verticalAlignment = Alignment.CenterVertically) {
-                Canvas(Modifier.size(55.dp)) {
+                Canvas(Modifier.size(49.dp)) {
                     val cyan = Color(0xFF19DFFF)
                     val blue = Color(0xFF237BFF)
-                    val sw = 3.7.dp.toPx()
+                    val sw = 2.8.dp.toPx()
                     val glow = Brush.linearGradient(listOf(cyan.copy(alpha = .25f), cyan, blue))
-                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw * 2.7f)
+                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw * 1.65f)
                     drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw)
-                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw * 2.4f)
+                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw * 1.55f)
                     drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw)
                     drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw * 2.4f)
                     drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw)
@@ -603,11 +642,6 @@ private fun HomeScreen(
         item {
             Card(shape = RoundedCornerShape(25.dp), border = BorderStroke(1.5.dp, Color(0xFF159EFF)), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
                 Box(Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF0C3E70), Color(0xFF092A50), Color(0xFF07172F))))) {
-                    Canvas(Modifier.matchParentSize()) {
-                        val glow = Color(0xFF11BFFF)
-                        drawLine(glow.copy(alpha = .10f), Offset(size.width * .03f, size.height * .12f), Offset(size.width * .96f, size.height * .12f), 10.dp.toPx())
-                        drawArc(Color(0xFF9D55FF).copy(alpha = .20f), 190f, 75f, false, Offset(0f, size.height * .75f), Size(size.width * .55f, size.height * .45f), style = Stroke(12.dp.toPx()))
-                    }
                     Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                         Row(Modifier.fillMaxWidth().heightIn(min = 61.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
