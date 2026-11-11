@@ -366,7 +366,7 @@ private fun HomeScreen(
                     Text("TOPLAM BAKİYE", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text(money(balance), fontSize = if (money(balance).length > 13) 26.sp else 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                     Spacer(Modifier.height(4.dp))
-                    Text(p.label + " • kalan: " + money(inc - exp), color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(p.label + " • aylık net: " + money(inc - exp), color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -374,7 +374,7 @@ private fun HomeScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatCard("AYLIK GELİR", money(inc), Green, Modifier.weight(1f))
                 StatCard("AYLIK GİDER", money(exp), Red, Modifier.weight(1f))
-                StatCard("KALAN", money(inc - exp), if (inc - exp >= 0) Amber else Red, Modifier.weight(1f))
+                StatCard("BÜTÇE KALAN", money(budget - exp), if (budget - exp >= 0) Green else Red, Modifier.weight(1f))
             }
         }
         if (!autoOk) {
