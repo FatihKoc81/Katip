@@ -153,7 +153,7 @@ object BankParser {
         if (financialContext.none { keyword -> normalize(keyword).trim().let { it.isNotEmpty() && n.contains(it) } }) return null
         val amounts = candidates(text)
         if (amounts.isEmpty()) return null
-        return amounts.maxByOrNull { score(it, text) }?.value
+        return amounts.sortedWith(compareByDescending<Candidate> { score(it, text) }.thenBy { it.start }).firstOrNull()?.value
     }
 
     /**
