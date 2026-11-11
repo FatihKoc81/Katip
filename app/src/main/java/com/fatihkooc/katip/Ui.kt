@@ -462,18 +462,6 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
                         }
                     }
                 }
-                Spacer(Modifier.height(14.dp))
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFF0B1A30)).padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                        Text("↓ Gelir", color = Color(0xFF37E4A5), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(money(0.0), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Box(Modifier.width(1.dp).height(32.dp).background(Color(0xFF3C5878)))
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                        Text("↑ Gider", color = Color(0xFFFF7D91), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(money(total), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
             }
         }
     }
@@ -550,7 +538,7 @@ private fun HomeScreen(
     val balance = txns.sumOf { if (it.isIncome) it.amount else -it.amount }
     val remaining = budget - exp
     val ratio = if (budget > 0) (exp / budget).toFloat().coerceIn(0f, 1f) else 0f
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 4.dp, bottom = 112.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item {
             Row(Modifier.fillMaxWidth().heightIn(min = 54.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(Brush.linearGradient(listOf(Color(0xFF19CFFF), Color(0xFF315BFF)))), contentAlignment = Alignment.Center) {
@@ -598,14 +586,6 @@ private fun HomeScreen(
                         Text("↑ Gider  " + money(exp), color = Color(0xFFFF8194), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                QuickActionTile("＋", "Gelir Ekle", Color(0xFF00E79A), Modifier.weight(1f), onAddIncome)
-                QuickActionTile("−", "Gider Ekle", Color(0xFFFF637F), Modifier.weight(1f), onAddExpense)
-                QuickActionTile("⇄", "Raporlar", Color(0xFF9B83FF), Modifier.weight(1f), onReports)
-                QuickActionTile("◎", "Bütçe", Color(0xFFFFB34D), Modifier.weight(1f), onBudget)
             }
         }
         if (!autoOk) item {
