@@ -104,10 +104,20 @@ class Store(context: Context) {
         val repaired = rows.map { t ->
             // Otomatik/deneme kayıtlarını her açılışta güncel ayrıştırıcıyla yeniden değerlendir.
             // Mesaj metni eksik veya belirsizse mevcut kayda dokunma.
-            if (!t.isIncome && t.source in setOf("bildirim", "sms", "deneme") && t.note.isNotBlank()) {
+            if (t.source in setOf("bildirim", "sms", "deneme") && t.note.isNotBlank()) {
                 val parsed = BankParser.parse(t.note)
-                if (parsed != null && !parsed.isIncome && kotlin.math.abs(parsed.amount - t.amount) >= 0.005) {
-                    t.copy(amount = parsed.amount, category = parsed.category, title = parsed.title)
+                if (parsed != null && (
+                    parsed.isIncome != t.isIncome ||
+                    kotlin.math.abs(parsed.amount - t.amount) >= 0.005 ||
+                    parsed.category != t.category ||
+                    parsed.title != t.title
+                )) {
+                    t.copy(
+                        isIncome = parsed.isIncome,
+                        amount = parsed.amount,
+                        category = parsed.category,
+                        title = parsed.title
+                    )
                 } else t
             } else t
         }
