@@ -6,8 +6,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +27,12 @@ class MainActivity : ComponentActivity() {
     private val smsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             resumeTick++
+            askBattery()
+        }
+
+    private val batteryLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            resumeTick++
             askNotificationAccess()
         }
 
@@ -39,6 +47,8 @@ class MainActivity : ComponentActivity() {
         resumeTick++
     }
 
+    private val prefs get() = getSharedPreferences("katip_setup", Context.MODE_PRIVATE)
+
     private fun smsGranted() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) ==
             PackageManager.PERMISSION_GRANTED
@@ -46,13 +56,20 @@ class MainActivity : ComponentActivity() {
     private fun notifGranted() =
         NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
 
+    private fun batteryIgnored(): Boolean =
+        (getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .isIgnoringBatteryOptimizations(packageName)
+
+    /** Pil izni bir kez sorulur; reddedilirse her açılışta rahatsız edilmez. */
+    private fun batteryDone() = batteryIgnored() || prefs.getBoolean("battery_asked", false)
+
     /**
      * Her açılışta, izinler tamamlanana kadar kullanıcıyı yönlendirir.
      * İlk açılışta önce gizlilik açıklaması gösterilir.
+     * Sıra: gizlilik → SMS izni → pil izni → bildirim erişimi.
      */
     private fun setup() {
-        if (smsGranted() && notifGranted()) return
-        val prefs = getSharedPreferences("katip_setup", Context.MODE_PRIVATE)
+        if (smsGranted() && notifGranted() && batteryDone()) return
         if (prefs.getBoolean("disclosed_v2", false)) {
             continueSetup()
             return
@@ -67,7 +84,7 @@ class MainActivity : ComponentActivity() {
                         "• Her şey yalnızca telefonunda işlenir ve saklanır.\n" +
                         "• Hiçbir veri internete gönderilmez, kimseyle paylaşılmaz.\n" +
                         "• Uygulamayı silince tüm kayıtlar da silinir.\n\n" +
-                        "Devam edince Android senden izin isteyecek."
+                        "Devam edince Android senden birkaç izin isteyecek."
                 )
                 .setCancelable(false)
                 .setPositiveButton("Anladım, devam") { _, _ ->
@@ -84,6 +101,23 @@ class MainActivity : ComponentActivity() {
         if (!smsGranted()) {
             smsLauncher.launch(Manifest.permission.RECEIVE_SMS)
         } else {
+            askBattery()
+        }
+    }
+
+    /** Android'in "arka planda çalışmasına izin ver" penceresini açar; ayarlarda gezmek gerekmez. */
+    private fun askBattery() {
+        if (batteryDone() || isFinishing) {
+            askNotificationAccess()
+            return
+        }
+        prefs.edit().putBoolean("battery_asked", true).apply()
+        try {
+            batteryLauncher.launch(
+                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData(Uri.parse("package:$packageName"))
+            )
+        } catch (_: Exception) {
             askNotificationAccess()
         }
     }
