@@ -672,6 +672,35 @@ private fun HomeScreen(
 }
 
 @Composable
+private fun QuickActionTile(
+    icon: String,
+    label: String,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    compact: Boolean = false
+) {
+    Card(
+        modifier = modifier.height(if (compact) 61.dp else 82.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.4.dp, accent.copy(alpha = 0.95f)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Column(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(listOf(accent.copy(alpha = 0.30f), accent.copy(alpha = 0.12f), Color(0xFF07172E)))
+            ).padding(horizontal = 2.dp, vertical = if (compact) 4.dp else 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(icon, color = accent, fontSize = if (compact) 23.sp else 31.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(if (compact) 1.dp else 4.dp))
+            Text(label, color = Color(0xFFF4FAFF), fontSize = if (compact) 8.sp else 10.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
+@Composable
 private fun TxnScreen(txns: List<Txn>, onEdit: (Txn) -> Unit) {
     var filter by remember { mutableIntStateOf(0) }
     val list = when (filter) {
