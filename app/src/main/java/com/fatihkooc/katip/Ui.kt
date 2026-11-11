@@ -674,14 +674,6 @@ private fun HomeScreen(
                 }
             }
         }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                QuickActionTile("⊕", "Gelir Ekle", Color(0xFF00F0A0), Modifier.weight(1f), onAddIncome, compact = true)
-                QuickActionTile("⊖", "Gider Ekle", Color(0xFFFF6689), Modifier.weight(1f), onAddExpense, compact = true)
-                QuickActionTile("⇄", "Transfer", Color(0xFF9C7BFF), Modifier.weight(1f), onTransfer, compact = true)
-                QuickActionTile("◎", "Hedefler", Color(0xFFFFB34D), Modifier.weight(1f), onBudget, compact = true)
-            }
-        }
         if (!autoOk) item {
             Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF33291F))) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
