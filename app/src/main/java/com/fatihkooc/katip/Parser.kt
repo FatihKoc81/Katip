@@ -6,6 +6,12 @@ object BankParser {
     private const val NUM = """(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2})"""
     private val amountA = Regex(NUM + """\s*(?:TL|TRY|₺)""", RegexOption.IGNORE_CASE)
     private val amountB = Regex("""(?:TL|TRY|₺)\s*""" + NUM, RegexOption.IGNORE_CASE)
+
+    // Destekli faturalarda toplam tüketim bedeli değil, müşterinin ödeyeceği net tutar seçilir.
+    private val payableAmount = Regex(
+        """(?:ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödenecek(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödeyeceğiniz\s+tutar|sizin\s+ödeyeceğiniz\s+tutar)\D{0,100}""" + NUM + """\s*(?:TL|TRY|₺)""",
+        RegexOption.IGNORE_CASE
+    )
     private val thousands = Regex("""^\d{1,3}(\.\d{3})+$""")
     private val usFormat = Regex("""^\d{1,3}(,\d{3})+(\.\d{1,2})?$""")
 
@@ -73,16 +79,18 @@ object BankParser {
 
     /** fromMail = true ise daha katı kurallar uygulanır (pazarlama e-postalarını kaydetmemek için). */
     fun parse(text: String, fromMail: Boolean = false): Parsed? {
+        // Önce açıkça belirtilen ödenecek tutarı ara; destek ve toplam bedel karışmasın.
+        val payable = payableAmount.find(text)
         val a = amountA.find(text)
         val b = amountB.find(text)
-        val m = listOfNotNull(a, b).minByOrNull { it.range.first } ?: return null
+        val m = payable ?: listOfNotNull(a, b).minByOrNull { it.range.first } ?: return null
         val value = toDouble(m.groupValues[1]) ?: return null
         if (value <= 0.0) return null
 
         val n = Categories.norm(text)
         if (reject.any { n.contains(it) }) return null
         if (fromMail && rejectMail.any { n.contains(it) }) return null
-        val hasSpend = strongSpend.any { n.contains(it) }
+        val hasSpend = payable != null || strongSpend.any { n.contains(it) }
         if (!hasSpend && rejectWeak.any { n.contains(it) }) return null
 
         val isIncome = when {
