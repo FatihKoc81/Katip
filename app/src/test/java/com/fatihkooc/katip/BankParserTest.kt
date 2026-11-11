@@ -39,6 +39,17 @@ class BankParserTest {
     }
 
     @Test
+    fun suggestsAmountForManualConfirmationWhenBillIsAmbiguous() {
+        val sms = "Elektrik faturası: Tüketim bedeli 1.322,33 TL. Devlet desteği 722,33 TL."
+        assertEquals(1322.33, BankParser.suggestForConfirmation(sms) ?: 0.0, 0.005)
+    }
+
+    @Test
+    fun doesNotSuggestForOrdinaryNonFinancialMessage() {
+        assertNull(BankParser.suggestForConfirmation("Yarın saat 13:30'da görüşelim."))
+    }
+
+    @Test
     fun parsesTurkishAndInternationalNumberFormats() {
         assertEquals(1322.33, BankParser.toDouble("1.322,33") ?: 0.0, 0.005)
         assertEquals(1322.33, BankParser.toDouble("1,322.33") ?: 0.0, 0.005)
