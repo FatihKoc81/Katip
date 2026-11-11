@@ -352,7 +352,7 @@ private fun Donut(slices: List<Pair<String, Double>>, modifier: Modifier = Modif
 @Composable
 private fun CategoryBlock(rows: List<Pair<String, Double>>) {
     val total = rows.sumOf { it.second }
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
+    Card(shape = RoundedCornerShape(20.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Text("Harcama dağılımı", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(Modifier.height(12.dp))
@@ -397,7 +397,7 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>) {
 
 @Composable
 private fun StatCard(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
+    Card(modifier = modifier, shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Text(label, color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
@@ -410,6 +410,7 @@ private fun StatCard(label: String, value: String, color: Color, modifier: Modif
 private fun TxnRow(t: Txn, onClick: () -> Unit) {
     val fmt = remember { SimpleDateFormat("dd.MM HH:mm", TR) }
     Card(
+        border = BorderStroke(1.dp, Edge),
         colors = CardDefaults.cardColors(containerColor = Card1),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
@@ -473,9 +474,9 @@ private fun HomeScreen(
                     Text(if (updateBusy) "…" else "✦", color = Color(0xFFDCE9FF), fontSize = 23.sp)
                 }
             }
-            if (updateMessage.isNotBlank()) {
-                item { Text(updateMessage, color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
-            }
+        }
+        if (updateMessage.isNotBlank()) {
+            item { Text(updateMessage, color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
         }
         item {
             Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
@@ -525,7 +526,7 @@ private fun HomeScreen(
         if (budget > 0) {
             item {
                 val ratio = (exp / budget).toFloat()
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Card1)) {
+                Card(shape = RoundedCornerShape(18.dp), border = BorderStroke(1.dp, Edge), colors = CardDefaults.cardColors(containerColor = Card1)) {
                     Column(Modifier.fillMaxWidth().padding(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Aylık bütçe", fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
