@@ -146,11 +146,11 @@ object BankParser {
         if (text.isBlank()) return null
         val n = normalize(text)
         val financialContext = listOf(
-            "tl", "try", "₺", "fatura", "odeme", "harcama", "kart", "hesap",
+            "tl", "try", "fatura", "odeme", "harcama", "kart", "hesap",
             "borc", "tahsil", "islem", "elektrik", "dogalgaz", "su faturasi",
             "market", "alisveris", "pos", "havale", "eft"
         )
-        if (financialContext.none { n.contains(normalize(it).trim()) }) return null
+        if (financialContext.none { keyword -> normalize(keyword).trim().let { it.isNotEmpty() && n.contains(it) } }) return null
         val amounts = candidates(text)
         if (amounts.isEmpty()) return null
         return amounts.maxByOrNull { score(it, text) }?.value
