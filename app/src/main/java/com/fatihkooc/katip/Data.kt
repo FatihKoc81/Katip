@@ -16,6 +16,18 @@ data class Txn(
     val source: String // manuel, bildirim, sms, deneme
 )
 
+data class PendingReview(
+    val id: Long,
+    val text: String,
+    val suggestedAmount: Double,
+    val source: String
+) {
+    fun asTxn(): Txn {
+        val (category, merchant) = Categories.match(text, false)
+        return Txn(id, false, merchant ?: "Kontrol edilecek işlem", suggestedAmount, category, text, System.currentTimeMillis(), source)
+    }
+}
+
 object Categories {
     val expense = listOf("Market", "Yemek", "Ulaşım", "Yakıt", "Fatura", "Alışveriş", "Sağlık", "Eğlence", "Diğer")
     val income = listOf("Maaş", "Ek gelir", "İade", "Diğer gelir")
@@ -76,6 +88,7 @@ class Store(context: Context) {
     companion object {
         private val LOCK = Any()
         private const val KEY = "txns"
+        private const val PENDING_KEY = "pending_reviews"
         private const val OLD_KEY = "expenses"
         private const val BUDGET = "budget"
         private const val DUP_WINDOW = 3 * 60 * 1000L
@@ -96,6 +109,42 @@ class Store(context: Context) {
         }
         if (repaired != rows) write(repaired)
         repaired.sortedByDescending { it.date }
+    }
+
+    fun pending(): List<PendingReview> = synchronized(LOCK) {
+        val raw = prefs.getString(PENDING_KEY, null) ?: return@synchronized emptyList()
+        try {
+            val a = JSONArray(raw)
+            (0 until a.length()).map { i ->
+                val o = a.getJSONObject(i)
+                PendingReview(o.getLong("id"), o.getString("text"), o.getDouble("amount"), o.optString("source", "bildirim"))
+            }.sortedBy { it.id }
+        } catch (_: Exception) { emptyList() }
+    }
+
+    fun addPending(item: PendingReview): Boolean = synchronized(LOCK) {
+        val rows = pending()
+        val fingerprint = item.text.trim().lowercase()
+        if (rows.any { it.text.trim().lowercase() == fingerprint }) return@synchronized false
+        val next = (rows + item).takeLast(1000)
+        val a = JSONArray()
+        next.forEach { p ->
+            a.put(JSONObject().apply {
+                put("id", p.id); put("text", p.text); put("amount", p.suggestedAmount); put("source", p.source)
+            })
+        }
+        prefs.edit().putString(PENDING_KEY, a.toString()).apply()
+        true
+    }
+
+    fun removePending(id: Long) = synchronized(LOCK) {
+        val a = JSONArray()
+        pending().filterNot { it.id == id }.forEach { p ->
+            a.put(JSONObject().apply {
+                put("id", p.id); put("text", p.text); put("amount", p.suggestedAmount); put("source", p.source)
+            })
+        }
+        prefs.edit().putString(PENDING_KEY, a.toString()).apply()
     }
 
     private fun read(): List<Txn> {
@@ -153,7 +202,7 @@ class Store(context: Context) {
     fun delete(id: Long) = synchronized(LOCK) { write(read().filterNot { it.id == id }) }
 
     fun clear() = synchronized(LOCK) {
-        prefs.edit().remove(OLD_KEY).putString(KEY, "[]").apply()
+        prefs.edit().remove(OLD_KEY).putString(KEY, "[]").putString(PENDING_KEY, "[]").apply()
     }
 
     fun budget(): Double = prefs.getString(BUDGET, null)?.toDoubleOrNull() ?: 0.0
@@ -163,7 +212,7 @@ class Store(context: Context) {
     }
 
     fun listen(cb: () -> Unit): SharedPreferences.OnSharedPreferenceChangeListener {
-        val l = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == KEY) cb() }
+        val l = SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == KEY || key == PENDING_KEY) cb() }
         prefs.registerOnSharedPreferenceChangeListener(l)
         return l
     }
