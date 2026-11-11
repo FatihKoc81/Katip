@@ -23,8 +23,12 @@ data class PendingReview(
     val source: String
 ) {
     fun asTxn(): Txn {
-        val (category, merchant) = Categories.match(text, false)
-        return Txn(id, false, merchant ?: "Kontrol edilecek işlem", suggestedAmount, category, text, System.currentTimeMillis(), source)
+        val n = Categories.norm(text)
+        val income = listOf("hesabiniza", "yatirildi", "gelen havale", "gelen eft", "maas", "para girisi", "iade", "odeme alindi")
+            .any { n.contains(it) }
+        val (category, merchant) = Categories.match(text, income)
+        return Txn(id, income, merchant ?: if (income) "Kontrol edilecek gelir" else "Kontrol edilecek gider",
+            suggestedAmount, category, text, System.currentTimeMillis(), source)
     }
 }
 
