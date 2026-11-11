@@ -238,30 +238,28 @@ fun KatipApp(resumeTick: Int) {
         Scaffold(
             containerColor = Navy,
             bottomBar = {
-                Surface(
-                    color = Color(0xFF0A1324),
-                    tonalElevation = 0.dp,
-                    shadowElevation = 18.dp
-                ) {
+                Box(Modifier.fillMaxWidth().background(Color(0xFF020B1C)).navigationBarsPadding().padding(horizontal = 9.dp, vertical = 4.dp)) {
                     Row(
-                        Modifier.fillMaxWidth().navigationBarsPadding().height(68.dp).padding(horizontal = 7.dp),
+                        Modifier.fillMaxWidth().height(72.dp).clip(RoundedCornerShape(27.dp))
+                            .background(Brush.verticalGradient(listOf(Color(0xFF102B4C), Color(0xFF071A33), Color(0xFF06152B)))),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         BottomNavItem("⌂", "Ana Sayfa", tab == 0, Modifier.weight(1f)) { tab = 0 }
                         BottomNavItem("⇄", "İşlemler", tab == 1, Modifier.weight(1f)) { tab = 1 }
-                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                            Box(
-                                Modifier.size(49.dp).clip(CircleShape)
-                                    .background(Brush.linearGradient(listOf(Color(0xFF69A5FF), Color(0xFF3978E8))))
-                                    .clickable { editing = null; pendingToEdit = null; showDialog = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("+", color = Color.White, fontSize = 31.sp, fontWeight = FontWeight.Light)
+                        Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
+                            Box(Modifier.size(62.dp).clip(CircleShape)
+                                .background(Brush.radialGradient(listOf(Color(0xFF32E7FF), Color(0xFF087BFF), Color(0xFF0347C7))))
+                                .clickable { editing = null; pendingToEdit = null; showDialog = true }, contentAlignment = Alignment.Center) {
+                                Text("+", color = Color.White, fontSize = 39.sp, fontWeight = FontWeight.Light)
                             }
                         }
-                        BottomNavItem("◷", "Raporlar", tab == 2, Modifier.weight(1f)) { tab = 2 }
-                        BottomNavItem("⚙", "Profil", tab == 3, Modifier.weight(1f)) { tab = 3 }
+                        BottomNavItem("▥", "Raporlar", tab == 2, Modifier.weight(1f)) { tab = 2 }
+                        BottomNavItem("♙", "Profil", tab == 3, Modifier.weight(1f)) { tab = 3 }
+                    }
+                    Canvas(Modifier.matchParentSize()) {
+                        drawRoundRect(Brush.linearGradient(listOf(Color(0xFF1DCBFF), Color(0xFF254D8D), Color(0xFF19CFFF))),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(27.dp.toPx()), style = Stroke(1.4.dp.toPx()))
                     }
                 }
             }
@@ -496,27 +494,36 @@ private fun CategoryBlock(rows: List<Pair<String, Double>>, compact: Boolean = f
 }
 
 @Composable
+@Composable
 private fun BottomNavItem(
-    glyph: String,
-    label: String,
-    selected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    glyph: String, label: String, selected: Boolean,
+    modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
     Column(
-        modifier.clip(RoundedCornerShape(15.dp)).clickable(onClick = onClick).padding(vertical = 5.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier.clip(RoundedCornerShape(19.dp))
+            .background(if (selected) Brush.verticalGradient(listOf(Color(0xFF075EAB).copy(alpha = .72f), Color(0xFF08294C).copy(alpha = .88f))) else Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent)))
+            .clickable(onClick = onClick).padding(vertical = 5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            Modifier.size(34.dp).clip(RoundedCornerShape(12.dp))
-                .background(if (selected) Color(0xFF203B63) else Color.Transparent),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(glyph, color = if (selected) Color(0xFFEAF3FF) else Color(0xFF91A4C1), fontSize = 21.sp)
+        Box(Modifier.size(35.dp).clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+            Text(glyph, color = if (selected) Color(0xFF29DFFF) else Color(0xFFB5CBE5), fontSize = 24.sp)
         }
-        Spacer(Modifier.height(2.dp))
-        Text(label, color = if (selected) Color.White else Color(0xFF91A4C1), fontSize = 9.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
+        Spacer(Modifier.height(1.dp))
+        Text(label, color = if (selected) Color.White else Color(0xFFB5CBE5), fontSize = 9.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+    }
+}
+
+@Composable
+private fun NotificationBell() {
+    Canvas(Modifier.size(26.dp)) {
+        val stroke = Stroke(2.dp.toPx())
+        val color = Color(0xFFD6F0FF)
+        drawArc(color, 180f, 180f, false, Offset(size.width * .25f, size.height * .13f), Size(size.width * .5f, size.height * .55f), style = stroke)
+        drawLine(color, Offset(size.width * .25f, size.height * .42f), Offset(size.width * .25f, size.height * .70f), 2.dp.toPx())
+        drawLine(color, Offset(size.width * .75f, size.height * .42f), Offset(size.width * .75f, size.height * .70f), 2.dp.toPx())
+        drawLine(color, Offset(size.width * .16f, size.height * .72f), Offset(size.width * .84f, size.height * .72f), 2.dp.toPx())
+        drawCircle(color, radius = size.width * .07f, center = Offset(size.width * .5f, size.height * .85f))
+        drawCircle(Color(0xFFFF5B72), radius = size.width * .13f, center = Offset(size.width * .82f, size.height * .16f))
     }
 }
 
@@ -571,13 +578,17 @@ private fun HomeScreen(
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 11.dp, end = 11.dp, top = 1.dp, bottom = 88.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
         item {
             Row(Modifier.fillMaxWidth().height(51.dp), verticalAlignment = Alignment.CenterVertically) {
-                Canvas(Modifier.size(48.dp)) {
-                    val cyan = Color(0xFF16DFFF)
-                    val sw = 3.2.dp.toPx()
-                    drawLine(cyan.copy(alpha = 0.35f), Offset(size.width * .22f, size.height * .12f), Offset(size.width * .22f, size.height * .88f), sw * 2.4f)
-                    drawLine(cyan, Offset(size.width * .22f, size.height * .12f), Offset(size.width * .22f, size.height * .88f), sw)
-                    drawLine(cyan, Offset(size.width * .25f, size.height * .50f), Offset(size.width * .78f, size.height * .12f), sw)
-                    drawLine(cyan, Offset(size.width * .25f, size.height * .50f), Offset(size.width * .78f, size.height * .88f), sw)
+                Canvas(Modifier.size(55.dp)) {
+                    val cyan = Color(0xFF19DFFF)
+                    val blue = Color(0xFF237BFF)
+                    val sw = 3.7.dp.toPx()
+                    val glow = Brush.linearGradient(listOf(cyan.copy(alpha = .25f), cyan, blue))
+                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw * 2.7f)
+                    drawLine(glow, Offset(size.width * .18f, size.height * .08f), Offset(size.width * .18f, size.height * .92f), sw)
+                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw * 2.4f)
+                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .08f), sw)
+                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw * 2.4f)
+                    drawLine(glow, Offset(size.width * .30f, size.height * .49f), Offset(size.width * .79f, size.height * .92f), sw)
                 }
                 Spacer(Modifier.width(7.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(0.dp)) {
@@ -585,10 +596,7 @@ private fun HomeScreen(
                     Text("Paranın kontrolü sende.", fontSize = 10.sp, color = Color(0xFFB7D9F7))
                 }
                 IconButton(onClick = onSeeAll, modifier = Modifier.size(37.dp)) { Text("⌕", color = Color(0xFFB7E8FF), fontSize = 29.sp) }
-                Box(Modifier.size(37.dp), contentAlignment = Alignment.Center) {
-                    IconButton(onClick = onSettings, modifier = Modifier.fillMaxSize()) { Text("♧", color = Color(0xFFB7E8FF), fontSize = 22.sp) }
-                    Box(Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(8.dp).clip(CircleShape).background(Red))
-                }
+                IconButton(onClick = onSeeAll, modifier = Modifier.size(37.dp)) { NotificationBell() }
                 IconButton(onClick = onCheckUpdate, modifier = Modifier.size(30.dp), enabled = !updateBusy) { Text("⋮", color = Color(0xFFB7E8FF), fontSize = 22.sp) }
             }
         }
