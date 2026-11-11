@@ -12,10 +12,20 @@ import android.service.notification.StatusBarNotification
 private const val MAIL_DUP_WINDOW = 20 * 60 * 1000L
 
 private fun save(context: Context, text: String, source: String, fromMail: Boolean = false) {
-    val p = BankParser.parse(text, fromMail) ?: return
+    val store = Store(context)
+    val cleanText = text.trim().take(4000)
+    val parsed = BankParser.parse(cleanText, fromMail)
+    if (parsed != null) {
+        val now = System.currentTimeMillis()
+        val txn = Txn(now, parsed.isIncome, parsed.title, parsed.amount, parsed.category, cleanText.take(1000), now, source)
+        if (fromMail) store.addAuto(txn, MAIL_DUP_WINDOW) else store.addAuto(txn)
+        return
+    }
+
+    // Ayrıştırıcı emin değilse tutarı harcama olarak yazma. Kullanıcıya onay kuyruğuna al.
+    val suggestion = BankParser.suggestForConfirmation(cleanText) ?: return
     val now = System.currentTimeMillis()
-    val txn = Txn(now, p.isIncome, p.title, p.amount, p.category, text.trim().take(1000), now, source)
-    if (fromMail) Store(context).addAuto(txn, MAIL_DUP_WINDOW) else Store(context).addAuto(txn)
+    store.addPending(PendingReview(now, cleanText, suggestion, source))
 }
 
 class KatipNotificationListener : NotificationListenerService() {
