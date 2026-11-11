@@ -769,14 +769,15 @@ private fun SettingsScreen(
                     OutlinedTextField(value = sample, onValueChange = { sample = it }, minLines = 3, label = { Text("SMS / bildirim metni") })
                     Button(onClick = {
                         val r = BankParser.parse(sample)
-                        if (r == null) sampleResult = "Bu metinde harcama veya gelir bulunamadı."
+                        val suggestion = r?.amount ?: BankParser.suggestForConfirmation(sample)
+                        if (suggestion == null) sampleResult = "Bu metinde doğrulanabilecek bir tutar bulunamadı."
                         else {
                             val now = System.currentTimeMillis()
-                            store.add(Txn(now, r.isIncome, r.title, r.amount, r.category, sample.trim().take(1000), now, "deneme"))
-                            sampleResult = (if (r.isIncome) "Gelir" else "Gider") + " eklendi: " + money(r.amount) + " • " + r.category
+                            store.addPending(PendingReview(now, sample.trim().take(4000), suggestion, "deneme"))
+                            sampleResult = "Tutar onayınıza sunuldu. Kaydetmek için açılan soruyu yanıtlayın."
                             sample = ""
                         }
-                    }) { Text("Ayrıştır ve ekle") }
+                    }) { Text("Ayrıştır ve doğrula") }
                     if (sampleResult.isNotBlank()) Text(sampleResult, fontSize = 13.sp)
                 }
             }
