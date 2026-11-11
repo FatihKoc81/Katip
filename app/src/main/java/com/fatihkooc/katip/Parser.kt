@@ -14,15 +14,10 @@ object BankParser {
     // En yüksek öncelik: müşterinin gerçekten ödeyeceği / hesabından çekilecek net tutar.
     // Farklı kurumlar aynı kavramı farklı kelimelerle ifade edebildiği için eş anlamlı etiketler kullanılır.
     private val payableLabels = listOf(
-        Regex("""(?:senin\s+ödeyeceğin(?:\s+tutar)?|sizin\s+ödeyeceğiniz(?:\s+tutar)?|ödeyeceğiniz\s+tutar|müşterinin\s+ödeyeceği(?:\s+tutar)?|ödenecek(?:\s+fatura)?\s+(?:tutar[ıi]?|miktar[ıi]?|bedel[ıi]?)|ödenmesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|ödemesi\s+gereken(?:\s+fatura)?\s+tutar[ıi]?|net\s+(?:ödeme|fatura)\s+tutar[ıi]?|tahsil\s+edilecek\s+tutar|ödenecek\s+toplam(?:\s+tutar)?)\D{0,80}""" + NUM + """\s*(?:TL|TRY|₺)?""", RegexOption.IGNORE_CASE),
+        // Kurum/marka bağımsız: farklı fatura sağlayıcılarının kullandığı net ödeme ifadeleri.
+        Regex("""(?:ödenmesi\s+gereken|ödemesi\s+gereken|ödenecek|müşterinin\s+ödeyeceği|sizin\s+ödeyeceğiniz|senin\s+ödeyeceğin|tahsil\s+edilecek)\s+(?:olan\s+)?(?:ilgili\s+dönem\s+)?(?:fatura\s+)?(?:net\s+)?(?:tutar[ıi]?|miktar[ıi]?|bedel[ıi]?|fatura\s+tutar[ıi]?)\D{0,80}""" + NUM + """\s*(?:TL|TRY|₺)?""", RegexOption.IGNORE_CASE),
+        Regex("""(?:net\s+(?:ödeme|fatura)\s+tutar[ıi]?|ödenecek\s+toplam(?:\s+tutar)?)\D{0,80}""" + NUM + """\s*(?:TL|TRY|₺)?""", RegexOption.IGNORE_CASE),
         Regex(NUM + """\s*(?:TL|TRY|₺)?\s*(?:ödenecek\s+tutar|ödenmesi\s+gereken\s+tutar|müşterinin\s+ödeyeceği\s+tutar)""", RegexOption.IGNORE_CASE)
-    )
-
-    // Aksa Doğalgaz e-fatura SMS: tüketim bedeli ve devlet desteği değil,
-    // "ödenmesi gereken fatura tutarı" müşterinin gerçek gideridir.
-    private val aksaPayableAmount = Regex(
-        """ödenmesi\s+gereken\s+fatura\s+tutar[ıi]?\s*[:：]?\s*([0-9][0-9.,]*)\s*(?:TL|TRY|₺)?""",
-        RegexOption.IGNORE_CASE
     )
 
     private val reject = listOf(
@@ -175,16 +170,6 @@ object BankParser {
         val n = normalize(text)
         if (reject.any { n.contains(it) }) return null
         if (fromMail && rejectMail.any { n.contains(it) }) return null
-
-        // Aksa Doğalgaz'ın SMS formatını doğrudan ve güvenli biçimde işle.
-        // Bu özel kural, tüketim bedeli/devlet desteği rakamlarının seçilmesini önler.
-        if (n.contains("aksa") && n.contains("dogalgaz")) {
-            val match = aksaPayableAmount.find(text)
-            val amount = match?.groupValues?.getOrNull(1)?.let(::toDouble)
-            if (amount != null && amount > 0.0) {
-                return Parsed(false, amount, "Aksa Doğalgaz", "Fatura")
-            }
-        }
 
         val payable = explicitPayable(text)
         val allAmounts = candidates(text)
