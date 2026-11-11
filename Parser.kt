@@ -36,6 +36,8 @@ object BankParser {
         "qnb", "teb", "enpara", "papara", "fibabanka", "ingbank", "kuveytturk", "albaraka",
         "odeabank", "sekerbank", "hsbc", "tosla", "paycell", "ininal", "finansbank", "burgan",
         "anadolubank", "emlak", "turkiyefinans", "colendi",
+        // İşCep'in paket adında "isbank" geçmez
+        "pozitron.iscep",
         // Cüzdan uygulamaları (telefondan temassız ödeme)
         "samsung.android.spay", "walletnfcrel"
     )
