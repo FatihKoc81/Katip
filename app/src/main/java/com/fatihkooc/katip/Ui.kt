@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -43,14 +44,16 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-private val Navy = Color(0xFF101A30)
-private val Card1 = Color(0xFF192641)
-private val Card2 = Color(0xFF20365C)
-private val Blue = Color(0xFF477BFF)
-private val Green = Color(0xFF3DDC97)
-private val Red = Color(0xFFFF6B6B)
+private val Navy = Color(0xFF080F24)
+private val Card1 = Color(0xFF111F3B)
+private val Card2 = Color(0xFF172B52)
+private val Blue = Color(0xFF4B8CFF)
+private val Green = Color(0xFF39D7B0)
+private val Red = Color(0xFFFF647C)
 private val Amber = Color(0xFFFFC66D)
-private val Muted = Color(0xFFB9C8E5)
+private val Muted = Color(0xFF9EAFD0)
+private val HeroBrush = Brush.linearGradient(listOf(Color(0xFF254A88), Color(0xFF172B52), Color(0xFF111E3B)))
+private val ScreenBrush = Brush.verticalGradient(listOf(Color(0xFF0B1630), Color(0xFF080F24), Color(0xFF0C1730)))
 private val Palette = listOf(
     Color(0xFF477BFF), Color(0xFF3DDC97), Color(0xFFFFC66D), Color(0xFFB66DFF), Color(0xFFFF6B6B),
     Color(0xFF4FD1E8), Color(0xFFFF9F5A), Color(0xFF9BE15D), Color(0xFF8A94A6)
@@ -185,7 +188,7 @@ fun KatipApp(resumeTick: Int) {
                 }
             }
         ) { padding ->
-            Box(Modifier.padding(padding).fillMaxSize()) {
+            Box(Modifier.padding(padding).fillMaxSize().background(ScreenBrush)) {
                 when (tab) {
                     0 -> HomeScreen(
                         txns, budget, autoOk,
@@ -357,16 +360,37 @@ private fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
-            Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp, fontSize = 20.sp)
-            Text("Otomatik bütçe asistanın", fontSize = 12.sp, color = Muted)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("KÂTİP", fontWeight = FontWeight.ExtraBold, letterSpacing = 2.5.sp, fontSize = 23.sp)
+                    Text("Paranın kontrolü sende.", fontSize = 12.sp, color = Muted)
+                }
+                Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFF172B52)), contentAlignment = Alignment.Center) {
+                    Text("✦", color = Color(0xFF8EB8FF), fontSize = 21.sp)
+                }
+            }
         }
         item {
-            Card(shape = RoundedCornerShape(22.dp), colors = CardDefaults.cardColors(containerColor = Card2)) {
-                Column(Modifier.fillMaxWidth().padding(20.dp)) {
-                    Text("TOPLAM BAKİYE", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(money(balance), fontSize = if (money(balance).length > 13) 26.sp else 32.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
-                    Spacer(Modifier.height(4.dp))
-                    Text(p.label + " • aylık net: " + money(inc - exp), color = Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
+                Box(Modifier.fillMaxWidth().background(HeroBrush, RoundedCornerShape(28.dp))) {
+                    Column(Modifier.fillMaxWidth().padding(22.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text("TOPLAM BAKİYE", color = Color(0xFFB9CBEA), fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                                Spacer(Modifier.height(8.dp))
+                                Text(money(balance), fontSize = if (money(balance).length > 13) 27.sp else 34.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                            }
+                            Box(Modifier.size(46.dp).clip(CircleShape).background(Color(0x334B8CFF)), contentAlignment = Alignment.Center) {
+                                Text("₺", fontSize = 25.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(Modifier.height(18.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(7.dp).clip(CircleShape).background(Green))
+                            Spacer(Modifier.width(7.dp))
+                            Text(p.label + "  •  Aylık net " + money(inc - exp), color = Color(0xFFCAD8F0), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
                 }
             }
         }
