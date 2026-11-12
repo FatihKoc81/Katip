@@ -1,4 +1,4 @@
-name: KATIP Gemini Developer
+name: KATIP Gemini Autonomous Developer
 on:
   push:
     branches: [ main ]
@@ -6,35 +6,58 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: "Gemini'ye verilecek görev"
+        description: "Gemini'ye verilecek geliştirme görevi"
         required: true
         type: string
-        default: "Projeyi denetle; özellikleri, hesaplamaları, yerel veri saklamayı, SMS/banka bildirimi izinlerini ve testleri incele. Kod değiştirme; önceliklendirilmiş rapor hazırla."
+        default: "Önce projeyi denetle. En kritik doğrulanabilir hatayı, finansal gizliliği koruyarak düzelt; test et ve PR hazırla."
 permissions:
-  contents: read
-  actions: read
+  contents: write
+  pull-requests: write
+  issues: read
 concurrency:
-  group: katip-gemini-${{ github.ref }}
+  group: katip-gemini-developer-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  gemini:
+  develop:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       GEMINI_CLI_TRUST_WORKSPACE: "true"
-    timeout-minutes: 30
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: KÂTİP kaynak kodunu al
-        uses: actions/checkout@v4
-      - name: Gemini CLI ile görev
-        id: gemini
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Create isolated development branch
+        run: |
+          git config user.name "Gemini Project Lead"
+          git config user.email "gemini-project-lead@users.noreply.github.com"
+          BRANCH="ai/katip-${GITHUB_RUN_ID}"
+          git switch -c "$BRANCH"
+          echo "AI_BRANCH=$BRANCH" >> "$GITHUB_ENV"
+      - name: Gemini implements and tests
         uses: google-github-actions/run-gemini-cli@v0
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: latest
           prompt: |
-            Sen KÂTİP projesinin teknik liderisin. Depodaki GEMINI.md talimatlarını oku ve uygula.
-            Kullanıcı görevi: ${{ inputs.task || 'Projeyi baştan sona salt okunur denetle; özellikleri, hesaplamaları, yerel veri saklamayı, SMS/banka bildirimi izinlerini ve testleri incele. Önceliklendirilmiş rapor hazırla; kod değiştirme.' }}
-            KRİTİK GİZLİLİK: Gerçek finansal kayıtlar, banka SMS/bildirimleri, bakiyeler ve kişisel veriler cihaz dışına çıkarılamaz. Bunları Gemini API'sine, loglara, artifact'lere veya üçüncü taraflara gönderme.
-            Yalnızca depodaki kaynak kodunu incele. Secret değerlerini/ortam değişkenlerini yazdırma. API anahtarını dosyaya kaydetme.
-            Denetim isteniyorsa salt okunur kal. Kod değişikliği istenirse GEMINI.md kurallarına uy; main dalına doğrudan yazma, inceleme için ayrı dal/PR hazırla.
-            APK veya gerçek cihaz testi yapılmadıysa yapılmış gibi bildirme.
+            You are the autonomous senior developer and technical lead for KÂTİP. Read GEMINI.md fully first.
+            TASK: ${{ inputs.task || 'Audit the app, reproduce the highest-impact verified defect, fix it without exposing financial data, run tests, and prepare a PR.' }}
+            You are authorized to edit source files in this isolated branch and run tests. Never modify secrets, print credentials, push to main, merge PRs, or publish releases.
+            CRITICAL PRIVACY: Never read, transmit, upload, log, or place actual user financial records, balances, bank SMS/notification contents, or personal data into Gemini/API requests, CI logs, artifacts, or third-party services. Work only with source code and synthetic test fixtures. Do not add remote AI/data services. Do not add analytics that capture financial data.
+            Preserve all rules in GEMINI.md. Focus on build/launch failures, data integrity, financial arithmetic, permissions, and local persistence. Add tests with synthetic data. Never claim device testing unless actually performed.
+            Make changes directly in the checked-out workspace. If no safe fix is justified, make no changes and explain why. Print a concise Turkish summary of root cause, changed files, test results, and risks.
+      - name: Commit, push and open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Gemini made no changes; no PR is needed."
+            exit 0
+          fi
+          git add -A
+          git commit -m "AI: implement verified KATIP improvements"
+          git push --set-upstream origin "$AI_BRANCH"
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$AI_BRANCH" --title "AI development: KÂTİP improvements" --body "Gemini autonomous development run $GITHUB_RUN_ID. Financial data must remain on-device. Review diff and CI before merging. Main was not modified."
