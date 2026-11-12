@@ -1,0 +1,223 @@
+{
+  "session_id": "8e4f4aca-4ee8-4124-b97f-3c3e54313f66",
+  "response": "KÂTİP Projesi audit sonuçları aşağıdadır:\n\n### Denetim Özeti\n- **Derleme/Çalıştırma:** Proje mevcut ortamda derlenememektedir. Derleme hatası, Android SDK'sının eksik olması ve gerekli SDK lisanslarının kabul edilmemiş olmasından kaynaklanmaktadır. Bu durum, Android SDK yapılandırmasına bağımlı olan birim testlerinin çalıştırılmasını da engellemektedir.\n- **İşlevsellik:** `Parser.kt` dosyasındaki temel ayrıştırma mantığı statik olarak incelendiğinde temel senaryolar için uygun görünmektedir. Ancak, `Data.kt` içindeki Android'e özgü bağımlılıklar (Context, SharedPreferences), saf JVM ortamında birim testlerinin yapılmasını zorlaştırmaktadır.\n- **Veri Kalıcılığı:** Yerel veriler `SharedPreferences` ve JSON formatında saklanmaktadır. `Store` sınıfı `synchronized(LOCK)` kullanımı ile temel bir eşzamanlılık yönetimi sunsa da, yapısal olarak geliştirilmeye açıktır.\n- **Güvenlik/Gizlilik:** Uygulama, finansal verileri cihaz üzerinde işleyerek gizlilik gereksinimlerini karşılamaktadır. Kod tabanında herhangi bir uzak API çağrısı veya veri sızıntısı tespit edilmemiştir.\n\n### Öneriler\n1. **Derleme Altyapısı:** `gradlew` wrapper yapısı düzeltilmeli ve projenin standart bir CI/CD ortamında derlenebilir olması sağlanmalıdır.\n2. **Test Edilebilirlik:** Temel iş mantığı (`Parser`, `Categories`, `Txn` modeli), Android'e özgü sınıflardan ayrıştırılarak saf JVM testleri yapılabilir hale getirilmelidir. Bu, projenin kararlılığını önemli ölçüde artıracaktır.\n3. **Doğrulama:** Ayrıştırma süreci için daha sağlam hata yönetimi ve kayıt mekanizmaları eklenmelidir.\n\nDerleme ortamındaki kısıtlamalar nedeniyle, kod üzerinde değişiklik yapıp bunları doğrulama imkanım bulunmamaktadır.",
+  "stats": {
+    "models": {
+      "gemini-3.1-flash-lite-preview": {
+        "api": {
+          "totalRequests": 11,
+          "totalErrors": 11,
+          "totalLatencyMs": 3447,
+          "errorsByType": {
+            "ApiError": 11
+          }
+        },
+        "tokens": {
+          "input": 0,
+          "prompt": 0,
+          "candidates": 0,
+          "total": 0,
+          "cached": 0,
+          "thoughts": 0,
+          "tool": 0
+        },
+        "roles": {
+          "main": {
+            "totalRequests": 11,
+            "totalErrors": 11,
+            "totalLatencyMs": 3447,
+            "tokens": {
+              "input": 0,
+              "prompt": 0,
+              "candidates": 0,
+              "total": 0,
+              "cached": 0,
+              "thoughts": 0,
+              "tool": 0
+            }
+          }
+        }
+      },
+      "gemini-3.1-flash-lite": {
+        "api": {
+          "totalRequests": 39,
+          "totalErrors": 0,
+          "totalLatencyMs": 182092,
+          "errorsByType": {}
+        },
+        "tokens": {
+          "input": 170562,
+          "prompt": 847975,
+          "candidates": 2342,
+          "total": 855374,
+          "cached": 677413,
+          "thoughts": 5057,
+          "tool": 0
+        },
+        "roles": {
+          "main": {
+            "totalRequests": 39,
+            "totalErrors": 0,
+            "totalLatencyMs": 182092,
+            "tokens": {
+              "input": 170562,
+              "prompt": 847975,
+              "candidates": 2342,
+              "total": 855374,
+              "cached": 677413,
+              "thoughts": 5057,
+              "tool": 0
+            }
+          }
+        }
+      },
+      "gemini-3-flash-preview": {
+        "api": {
+          "totalRequests": 1,
+          "totalErrors": 0,
+          "totalLatencyMs": 3581,
+          "errorsByType": {}
+        },
+        "tokens": {
+          "input": 8094,
+          "prompt": 8094,
+          "candidates": 126,
+          "total": 8616,
+          "cached": 0,
+          "thoughts": 396,
+          "tool": 0
+        },
+        "roles": {
+          "utility_loop_detector": {
+            "totalRequests": 1,
+            "totalErrors": 0,
+            "totalLatencyMs": 3581,
+            "tokens": {
+              "input": 8094,
+              "prompt": 8094,
+              "candidates": 126,
+              "total": 8616,
+              "cached": 0,
+              "thoughts": 396,
+              "tool": 0
+            }
+          }
+        }
+      }
+    },
+    "tools": {
+      "totalCalls": 38,
+      "totalSuccess": 38,
+      "totalFail": 0,
+      "totalDurationMs": 87629,
+      "totalDecisions": {
+        "accept": 38,
+        "reject": 0,
+        "modify": 0,
+        "auto_accept": 0
+      },
+      "byName": {
+        "update_topic": {
+          "count": 2,
+          "success": 2,
+          "fail": 0,
+          "durationMs": 6,
+          "decisions": {
+            "accept": 2,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "run_shell_command": {
+          "count": 14,
+          "success": 14,
+          "fail": 0,
+          "durationMs": 87510,
+          "decisions": {
+            "accept": 14,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "read_file": {
+          "count": 14,
+          "success": 14,
+          "fail": 0,
+          "durationMs": 57,
+          "decisions": {
+            "accept": 14,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "list_directory": {
+          "count": 3,
+          "success": 3,
+          "fail": 0,
+          "durationMs": 14,
+          "decisions": {
+            "accept": 3,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "write_file": {
+          "count": 2,
+          "success": 2,
+          "fail": 0,
+          "durationMs": 11,
+          "decisions": {
+            "accept": 2,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "enter_plan_mode": {
+          "count": 1,
+          "success": 1,
+          "fail": 0,
+          "durationMs": 7,
+          "decisions": {
+            "accept": 1,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "exit_plan_mode": {
+          "count": 1,
+          "success": 1,
+          "fail": 0,
+          "durationMs": 4,
+          "decisions": {
+            "accept": 1,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "grep_search": {
+          "count": 1,
+          "success": 1,
+          "fail": 0,
+          "durationMs": 20,
+          "decisions": {
+            "accept": 1,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        }
+      }
+    },
+    "files": {
+      "totalLinesAdded": 34,
+      "totalLinesRemoved": 0
+    }
+  }
+}
