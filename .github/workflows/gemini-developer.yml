@@ -1,0 +1,35 @@
+name: KATIP Gemini Developer
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Gemini'ye verilecek görev"
+        required: true
+        type: string
+        default: "Projeyi denetle; özellikleri, hesaplamaları, yerel veri saklamayı, SMS/banka bildirimi izinlerini ve testleri incele. Kod değiştirme; önceliklendirilmiş rapor hazırla."
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: katip-gemini-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  gemini:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: KÂTİP kaynak kodunu al
+        uses: actions/checkout@v4
+      - name: Gemini CLI ile görev
+        id: gemini
+        uses: google-github-actions/run-gemini-cli@v0
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_cli_version: latest
+          prompt: |
+            Sen KÂTİP projesinin teknik liderisin. Depodaki GEMINI.md talimatlarını oku ve uygula.
+            Kullanıcı görevi: ${{ inputs.task }}
+            KRİTİK GİZLİLİK: Gerçek finansal kayıtlar, banka SMS/bildirimleri, bakiyeler ve kişisel veriler cihaz dışına çıkarılamaz. Bunları Gemini API'sine, loglara, artifact'lere veya üçüncü taraflara gönderme.
+            Yalnızca depodaki kaynak kodunu incele. Secret değerlerini/ortam değişkenlerini yazdırma. API anahtarını dosyaya kaydetme.
+            Denetim isteniyorsa salt okunur kal. Kod değişikliği istenirse GEMINI.md kurallarına uy; main dalına doğrudan yazma, inceleme için ayrı dal/PR hazırla.
+            APK veya gerçek cihaz testi yapılmadıysa yapılmış gibi bildirme.
