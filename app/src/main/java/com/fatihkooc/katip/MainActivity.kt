@@ -60,6 +60,15 @@ class MainActivity : ComponentActivity() {
             SetupDialogs()
         }
         setup()
+        // Yalnızca anonim oturumu hazırlar; Kâtip verileri otomatik gönderilmez.
+        OrtakAIMerkezi.initialize(this) { result ->
+            if (result.ok) OrtakAIMerkezi.startConversation(applicationContext)
+        }
+    }
+
+    override fun onDestroy() {
+        OrtakAIMerkezi.stopConversation()
+        super.onDestroy()
     }
 
     override fun onResume() {
