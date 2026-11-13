@@ -1,6 +1,8 @@
 package com.fatihkooc.katip
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -21,6 +23,8 @@ object OrtakAIMerkezi {
     private const val FIREBASE_API_KEY = "AIzaSyDMpwjW6V9RscX91l0lQHZPgwrgZQnPor4"
     private const val FIREBASE_PROJECT_ID = "arena-mobile-1453"
     private val executor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private fun deliver(callback: (Result) -> Unit, result: Result) = mainHandler.post { callback(result) }
 
     data class Result(val ok: Boolean, val body: String)
 
@@ -39,14 +43,14 @@ object OrtakAIMerkezi {
             val auth = FirebaseAuth.getInstance(app)
             val current = auth.currentUser
             if (current != null) {
-                callback(Result(true, "Oturum hazır"))
+                deliver(callback, Result(true, "Oturum hazır"))
             } else {
                 auth.signInAnonymously()
                     .addOnSuccessListener { callback(Result(true, "Oturum hazır")) }
-                    .addOnFailureListener { callback(Result(false, it.message ?: "Firebase oturumu açılamadı")) }
+                    .addOnFailureListener { deliver(callback, Result(false, it.message ?: "Firebase oturumu açılamadı")) }
             }
         } catch (e: Exception) {
-            callback(Result(false, e.message ?: "Firebase başlatılamadı"))
+            deliver(callback, Result(false, e.message ?: "Firebase başlatılamadı"))
         }
     }
 
@@ -59,18 +63,18 @@ object OrtakAIMerkezi {
 
     private fun request(path: String, payload: JSONObject?, callback: (Result) -> Unit) {
         if (payload != null && (payload.optString("message").isBlank() && payload.optString("content").isBlank())) {
-            callback(Result(false, "Boş mesaj gönderilemez"))
+            deliver(callback, Result(false, "Boş mesaj gönderilemez"))
             return
         }
         val app = FirebaseApp.getApps().firstOrNull { it.name == PROJECT }
         if (app == null) {
-            callback(Result(false, "Önce initialize çağrılmalı"))
+            deliver(callback, Result(false, "Önce initialize çağrılmalı"))
             return
         }
         val auth = FirebaseAuth.getInstance(app)
         val user = auth.currentUser
         if (user == null) {
-            callback(Result(false, "Firebase oturumu bulunamadı"))
+            deliver(callback, Result(false, "Firebase oturumu bulunamadı"))
             return
         }
         user.getIdToken(false)
@@ -93,14 +97,14 @@ object OrtakAIMerkezi {
                         val code = connection.responseCode
                         val stream = if (code in 200..299) connection.inputStream else connection.errorStream
                         val body = stream?.bufferedReader()?.use { it.readText() } ?: ""
-                        callback(Result(code in 200..299, body))
+                        deliver(callback, Result(code in 200..299, body))
                     } catch (e: Exception) {
-                        callback(Result(false, e.message ?: "Bağlantı hatası"))
+                        deliver(callback, Result(false, e.message ?: "Bağlantı hatası"))
                     } finally {
                         connection?.disconnect()
                     }
                 }
             }
-            .addOnFailureListener { callback(Result(false, it.message ?: "Oturum doğrulanamadı")) }
+            .addOnFailureListener { deliver(callback, Result(false, it.message ?: "Oturum doğrulanamadı")) }
     }
 }
