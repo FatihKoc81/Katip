@@ -1,4 +1,4 @@
-name: KATIP Gemini Autonomous Developer
+name: AI Development Team — KÂTİP
 on:
   push:
     branches: [ main ]
@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "Gemini Project Lead"
           git config user.email "gemini-project-lead@users.noreply.github.com"
-          BRANCH="ai/katip-${GITHUB_RUN_ID}"
+          BRANCH="ai/katip-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git switch -c "$BRANCH"
           echo "AI_BRANCH=$BRANCH" >> "$GITHUB_ENV"
       - name: Gemini implements and tests
@@ -49,8 +49,74 @@ jobs:
             You are authorized to edit source files in this isolated branch and run tests. Never modify secrets, print credentials, push to main, merge PRs, or publish releases.
             CRITICAL PRIVACY: Never read, transmit, upload, log, or place actual user financial records, balances, bank SMS/notification contents, or personal data into Gemini/API requests, CI logs, artifacts, or third-party services. Work only with source code and synthetic test fixtures. Do not add remote AI/data services. Do not add analytics that capture financial data.
             Preserve all rules in GEMINI.md. Focus on build/launch failures, data integrity, financial arithmetic, permissions, and local persistence. Add tests with synthetic data. Never claim device testing unless actually performed.
-            Make changes directly in the checked-out workspace. If no safe fix is justified, make no changes and explain why. Print a concise Turkish summary of root cause, changed files, test results, and risks.
+            Make changes directly in the checked-out workspace. If no safe fix is justified, make no changes and explain why. Do not add generated CLI command packs, telemetry logs, build outputs, local.properties, APKs, credentials, or financial/user data to the repository. Print a concise Turkish summary of root cause, changed files, test results, and risks.
+      - name: Java 17 ve Gradle 8.7 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Gradle kur
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: KÂTİP testleri ve derleme
+        run: gradle testDebugUnitTest assembleDebug --stacktrace
+      - name: Üretilen dosyaları temizle
+        run: |
+          rm -rf app/build app/.cxx .gradle .kotlin build gemini-artifacts .gemini/commands
+          rm -f local.properties Katip.apk Katip-v*.zip
+          git checkout -- gradlew
+      - name: Güvenli değişiklikleri hazırla
+        run: |
+          git add -A
+          git reset -- .github/workflows
+          git diff --cached --check
+      - name: ChatGPT bağımsız kod denetimi
+        env:
+          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-5-mini
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { execFileSync } = require('child_process');
+          async function main() {
+            if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY GitHub Secret eksik.');
+            const diff = execFileSync('git', ['diff', '--cached', '--no-ext-diff', '--unified=3'], { encoding: 'utf8', maxBuffer: 12 * 1024 * 1024 });
+            const reportPath = process.env.RUNNER_TEMP + '/ai-review.md';
+            if (!diff.trim()) {
+              fs.writeFileSync(reportPath, 'Uygulama kaynaklarında değişiklik oluşmadı. PR açılmadı.\\n');
+              return;
+            }
+            if (diff.length > 70000) throw new Error('Diff 70.000 karakteri aşıyor; kapsam küçültülmeli.');
+            const secretPattern = /(AIza[0-9A-Za-z_-]{25,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,})/;
+            if (secretPattern.test(diff)) throw new Error('Diff içinde anahtara benzeyen gizli bilgi bulundu; PR durduruldu.');
+            const instructions = 'Bağımsız kıdemli yazılım denetçisisin. Git diffini güvenlik, veri kaybı, regresyon, runtime hatası ve test eksikleri açısından incele. KÂTİP ise finansal verinin cihaz dışına çıkmamasını; RESET NIGHT ise Godot 4 3D ve zombi olmayan insan düşman şartlarını denetle. Gerçek test yapılmadıysa yapılmış gibi sayma. İlk satır yalnızca APPROVED veya REJECTED olsun; devamında Türkçe bulguları yaz. Kritik/yüksek önemde doğrulanmış sorun varsa REJECTED ver.';
+            const response = await fetch('https://api.openai.com/v1/responses', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: process.env.OPENAI_MODEL, instructions, input: 'İncelenecek Git diff:\\n\\n' + diff, max_output_tokens: 3500 })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error('OpenAI API ' + response.status + ': ' + JSON.stringify(data).slice(0, 1200));
+            const result = (data.output || []).flatMap(x => x.content || []).filter(x => x.type === 'output_text').map(x => x.text).join('\\n').trim();
+            if (!result) throw new Error('ChatGPT boş denetim yanıtı verdi; PR açılmadı.');
+            fs.writeFileSync(reportPath, '## ChatGPT bağımsız kod denetimi\\n\\n' + result + '\\n');
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## ChatGPT bağımsız denetimi\\n\\n' + result + '\\n');
+            if (!/^APPROVED\\b/i.test(result)) throw new Error('ChatGPT onay vermedi; PR açılmadı.');
+          }
+          main().catch(e => { console.error(e); process.exit(1); });
+          NODE
       - name: Commit, push and open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --cached --quiet; then
+            echo "Doğrulanabilir uygulama kaynağı değişikliği yok; PR açılmadı."
+            exit 0
+          fi
+          git commit -m "AI: implement verified KATIP improvements"
+          git push --set-upstream origin "$AI_BRANCH"
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$AI_BRANCH" --title "AI Development Team: KÂTİP" --body-file "$RUNNER_TEMP/ai-review.md"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
