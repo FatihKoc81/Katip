@@ -61,7 +61,14 @@ class MainActivity : ComponentActivity() {
         }
         setup()
         // Yalnızca anonim oturumu hazırlar; Kâtip verileri otomatik gönderilmez.
-        OrtakAIMerkezi.initialize(this) { /* bağlantı sonucu; uygulama verisi aktarılmaz */ }
+        OrtakAIMerkezi.initialize(this) { result ->
+            if (result.ok) OrtakAIMerkezi.startConversation(applicationContext)
+        }
+    }
+
+    override fun onDestroy() {
+        OrtakAIMerkezi.stopConversation()
+        super.onDestroy()
     }
 
     override fun onResume() {
