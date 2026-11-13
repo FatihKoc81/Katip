@@ -73,7 +73,7 @@ jobs:
           git diff --cached --check
       - name: ChatGPT bağımsız kod denetimi
         env:
-          OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: gpt-5-mini
         run: |
           node <<'NODE'
@@ -84,7 +84,7 @@ jobs:
             const diff = execFileSync('git', ['diff', '--cached', '--no-ext-diff', '--unified=3'], { encoding: 'utf8', maxBuffer: 12 * 1024 * 1024 });
             const reportPath = process.env.RUNNER_TEMP + '/ai-review.md';
             if (!diff.trim()) {
-              fs.writeFileSync(reportPath, 'Uygulama kaynaklarında değişiklik oluşmadı. PR açılmadı.\\n');
+              fs.writeFileSync(reportPath, 'Uygulama kaynaklarında değişiklik oluşmadı. PR açılmadı.\n');
               return;
             }
             if (diff.length > 70000) throw new Error('Diff 70.000 karakteri aşıyor; kapsam küçültülmeli.');
@@ -94,15 +94,15 @@ jobs:
             const response = await fetch('https://api.openai.com/v1/responses', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model: process.env.OPENAI_MODEL, instructions, input: 'İncelenecek Git diff:\\n\\n' + diff, max_output_tokens: 3500 })
+              body: JSON.stringify({ model: process.env.OPENAI_MODEL, instructions, input: 'İncelenecek Git diff:\n\n' + diff, max_output_tokens: 3500 })
             });
             const data = await response.json();
             if (!response.ok) throw new Error('OpenAI API ' + response.status + ': ' + JSON.stringify(data).slice(0, 1200));
-            const result = (data.output || []).flatMap(x => x.content || []).filter(x => x.type === 'output_text').map(x => x.text).join('\\n').trim();
+            const result = (data.output || []).flatMap(x => x.content || []).filter(x => x.type === 'output_text').map(x => x.text).join('\n').trim();
             if (!result) throw new Error('ChatGPT boş denetim yanıtı verdi; PR açılmadı.');
-            fs.writeFileSync(reportPath, '## ChatGPT bağımsız kod denetimi\\n\\n' + result + '\\n');
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## ChatGPT bağımsız denetimi\\n\\n' + result + '\\n');
-            if (!/^APPROVED\\b/i.test(result)) throw new Error('ChatGPT onay vermedi; PR açılmadı.');
+            fs.writeFileSync(reportPath, '## ChatGPT bağımsız kod denetimi\n\n' + result + '\n');
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## ChatGPT bağımsız denetimi\n\n' + result + '\n');
+            if (!/^APPROVED\b/i.test(result)) throw new Error('ChatGPT onay vermedi; PR açılmadı.');
           }
           main().catch(e => { console.error(e); process.exit(1); });
           NODE
@@ -117,14 +117,3 @@ jobs:
           git commit -m "AI: implement verified KATIP improvements"
           git push --set-upstream origin "$AI_BRANCH"
           gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$AI_BRANCH" --title "AI Development Team: KÂTİP" --body-file "$RUNNER_TEMP/ai-review.md"
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "Gemini made no changes; no PR is needed."
-            exit 0
-          fi
-          git add -A
-          git commit -m "AI: implement verified KATIP improvements"
-          git push --set-upstream origin "$AI_BRANCH"
-          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$AI_BRANCH" --title "AI development: KÂTİP improvements" --body "Gemini autonomous development run $GITHUB_RUN_ID. Financial data must remain on-device. Review diff and CI before merging. Main was not modified."
