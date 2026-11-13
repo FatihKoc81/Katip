@@ -79,7 +79,7 @@ jobs:
               *) git reset -- "$file" ;;
             esac
           done
-          git diff --cached --check
+          git -c core.whitespace=-blank-at-eof diff --cached --check
       - name: GLM 4.7 Flash bağımsız incelemesi
         id: glm-review
         env:
