@@ -71,28 +71,34 @@ object OrtakAIMerkezi {
         }
         mainHandler.post {
             try {
-                val engine = speechEngine ?: TextToSpeech(context.applicationContext) { status ->
-                    if (status == TextToSpeech.SUCCESS) {
-                        val tts = speechEngine
-                        val language = tts?.setLanguage(java.util.Locale("tr", "TR"))
-                        if (tts != null && language != TextToSpeech.LANG_MISSING_DATA &&
-                            language != TextToSpeech.LANG_NOT_SUPPORTED) {
-                            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
-                            deliver(callback, Result(true, "Sesli okuma başlatıldı"))
-                        } else {
-                            deliver(callback, Result(false, "Türkçe ses paketi cihazda bulunamadı"))
-                        }
+                val current = speechEngine
+                if (current != null) {
+                    val language = current.setLanguage(java.util.Locale("tr", "TR"))
+                    if (language == TextToSpeech.LANG_MISSING_DATA ||
+                        language == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        deliver(callback, Result(false, "Türkçe ses paketi cihazda bulunamadı"))
                     } else {
-                        deliver(callback, Result(false, "Ses motoru başlatılamadı"))
+                        current.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
+                        deliver(callback, Result(true, "Sesli okuma başlatıldı"))
                     }
-                }.also { speechEngine = it }
-                if (speechEngine === engine && engine.isSpeaking) engine.stop()
-                if (engine.language != java.util.Locale("tr", "TR")) {
-                    engine.language = java.util.Locale("tr", "TR")
-                }
-                if (engine.isLanguageAvailable(java.util.Locale("tr", "TR")) >= TextToSpeech.LANG_AVAILABLE) {
-                    engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
-                    deliver(callback, Result(true, "Sesli okuma başlatıldı"))
+                } else {
+                    val created = TextToSpeech(context.applicationContext) { status ->
+                        mainHandler.post {
+                            if (status != TextToSpeech.SUCCESS) {
+                                deliver(callback, Result(false, "Ses motoru başlatılamadı"))
+                            } else {
+                                val language = speechEngine?.setLanguage(java.util.Locale("tr", "TR"))
+                                if (language == TextToSpeech.LANG_MISSING_DATA ||
+                                    language == TextToSpeech.LANG_NOT_SUPPORTED || speechEngine == null) {
+                                    deliver(callback, Result(false, "Türkçe ses paketi cihazda bulunamadı"))
+                                } else {
+                                    speechEngine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
+                                    deliver(callback, Result(true, "Sesli okuma başlatıldı"))
+                                }
+                            }
+                        }
+                    }
+                    speechEngine = created
                 }
             } catch (e: Exception) {
                 deliver(callback, Result(false, e.message ?: "Sesli okuma başlatılamadı"))
