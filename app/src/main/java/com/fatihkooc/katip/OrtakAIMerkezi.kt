@@ -125,49 +125,46 @@ object OrtakAIMerkezi {
         if (conversationRunning) return
         conversationRunning = true
         val interval = intervalMs.coerceAtLeast(5000L)
-        fun scheduleNext() {
-            if (conversationRunning) mainHandler.postDelayed({ poll() }, interval)
-        }
-        fun poll() {
-            if (!conversationRunning) return
-            getMessages { result ->
-                if (result.ok) {
-                    try {
-                        val root = JSONObject(result.body)
-                        val messages = when {
-                            root.optJSONArray("messages") != null -> root.optJSONArray("messages")!!
-                            root.optJSONArray("items") != null -> root.optJSONArray("items")!!
-                            root.optJSONArray("data") != null -> root.optJSONArray("data")!!
-                            else -> JSONArray()
-                        }
-                        for (i in 0 until messages.length()) {
-                            val item = messages.optJSONObject(i) ?: continue
-                            val from = item.optString("from", item.optString("sender", item.optString("project")))
-                            val to = item.optString("to")
-                            val content = item.optString("content", item.optString("message", item.optString("text"))).trim()
-                            val id = item.optString("id", item.optString("messageId", "$from|$content|$i"))
-                            if (content.isBlank() || from == PROJECT || (to.isNotBlank() && to != PROJECT) ||
-                                !seenMessageIds.add(id)) continue
-                            speak(context, "$from diyor ki: $content")
-                            val prompt = "Sen KATIP uygulamasının yapay zekâ asistanısın. " +
-                                "$from uygulamasından şu mesaj geldi: $content. Kısa, doğal ve Türkçe cevap ver. Yalnızca cevabı yaz."
-                            chat(prompt) { answer ->
-                                if (answer.ok) {
-                                    try {
-                                        val json = JSONObject(answer.body)
-                                        val reply = json.optString("response", json.optString("reply", json.optString("text"))).trim()
-                                        if (reply.isNotBlank()) {
-                                            sendMessage(from, reply) { sent ->
-                                                if (sent.ok) speak(context, "Yanıtım: $reply")
+        lateinit var poll: () -> Unit
+        poll = {
+            if (conversationRunning) {
+                getMessages { result ->
+                    if (result.ok) {
+                        try {
+                            val root = JSONObject(result.body)
+                            val messages = root.optJSONArray("messages")
+                                ?: root.optJSONArray("items")
+                                ?: root.optJSONArray("data")
+                                ?: JSONArray()
+                            for (i in 0 until messages.length()) {
+                                val item = messages.optJSONObject(i) ?: continue
+                                val from = item.optString("from", item.optString("sender", item.optString("project")))
+                                val to = item.optString("to")
+                                val content = item.optString("content", item.optString("message", item.optString("text"))).trim()
+                                val id = item.optString("id", item.optString("messageId", "$from|$content|$i"))
+                                if (content.isBlank() || from == PROJECT || (to.isNotBlank() && to != PROJECT) ||
+                                    !seenMessageIds.add(id)) continue
+                                speak(context, "$from diyor ki: $content")
+                                val prompt = "Sen KATIP uygulamasının yapay zekâ asistanısın. " +
+                                    "$from uygulamasından şu mesaj geldi: $content. Kısa, doğal ve Türkçe cevap ver. Yalnızca cevabı yaz."
+                                chat(prompt) { answer ->
+                                    if (answer.ok) {
+                                        try {
+                                            val json = JSONObject(answer.body)
+                                            val reply = json.optString("response", json.optString("reply", json.optString("text"))).trim()
+                                            if (reply.isNotBlank()) {
+                                                sendMessage(from, reply) { sent ->
+                                                    if (sent.ok) speak(context, "Yanıtım: $reply")
+                                                }
                                             }
-                                        }
-                                    } catch (_: Exception) { }
+                                        } catch (_: Exception) { }
+                                    }
                                 }
                             }
-                        }
-                    } catch (_: Exception) { }
+                        } catch (_: Exception) { }
+                    }
+                    if (conversationRunning) mainHandler.postDelayed({ poll() }, interval)
                 }
-                scheduleNext()
             }
         }
         poll()
