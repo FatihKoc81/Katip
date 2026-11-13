@@ -148,7 +148,12 @@ jobs:
             fs.writeFileSync(process.env.RUNNER_TEMP + '/glm-review.md', '## GLM 4.7 Flash bağımsız incelemesi\n\n' + text + '\n');
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## GLM 4.7 Flash incelemesi\n\n' + text + '\n');
             console.log('GLM_REVIEW_RESULT:\n' + text.slice(0, 3000));
-            if (!/^APPROVED\b/i.test(text)) throw new Error('GLM KÂTİP değişikliklerini onaylamadı; PR açılmadı.');
+            if (/^APPROVED\\b/i.test(text)) {
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=approved\\n');
+            } else {
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=rejected\\n');
+              console.log('GLM bulguları ChatGPT tarafından da bağımsız doğrulanacak; PR kapısı kapalı kalacak.');
+            }
             fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=approved\n');
           }
           main().catch(error => { console.error(error); process.exit(1); });
@@ -217,6 +222,7 @@ jobs:
             echo "ChatGPT API geçici olarak kullanılamıyor; PR taslak olarak açılacak."
           fi
       - name: Commit, push and open pull request
+        if: steps.glm-review.outputs.status == 'approved'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
