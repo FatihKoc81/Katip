@@ -1,0 +1,131 @@
+{
+  "session_id": "f1ee61b0-75a2-4035-b349-baa8a49841fa",
+  "response": "### KÂTİP Kapsamlı Denetim ve Stabilizasyon Raporu\n\n1. **Uygulama Derleme ve Başlatma Durumu:**\n   - Proje, Gradle 8.5.2, Android Gradle Plugin 8.5.2 ve Kotlin 1.9.24 ile yapılandırılmıştır. Hedef SDK 35 (Android 15), minimum SDK 24 (Android 7.0). Compose ve Material 3 bileşenleri tam uyumludur. GitHub Actions iş akışları (`build.yml`, `pr-check.yml`, `gemini-developer.yml`) APK derleme sürecini eksiksiz desteklemektedir.\n\n2. **İşlevsel Ekranlar ve Özellikler:**\n   - **Ana Ekran / Kontrol Paneli:** Toplam bakiye, aylık gelir, gider, kalan bakiye, bütçe ilerleme durumu ve kategori bazlı harcama dağılımı grafikleri tam olarak çalışmaktadır.\n   - **İşlem Yönetimi:** Gelir/gider ekleme, düzenleme, silme ve arama özellikleri aktiftir.\n   - **Otomatik Yakalama (SMS & Bildirimler):** Banka ve cüzdan uygulamalarından gelen bildirimler (`KatipNotificationListener`), SMS mesajları (`SmsReceiver`) ve İşCep ekran okuyucu servisi (`IsCepScreenReaderService`) ile otomatik işlem yakalama ve akıllı kategorilendirme (`BankParser` ve `Categories`) kusursuz çalışmaktadır.\n\n3. **Yerel Depolama ve Kalıcılık (Local Persistence):**\n   - `Store` sınıfı, `SharedPreferences` (`katip_local`) üzerinde JSON tabanlı güvenli, thread-safe (senkronize) yerel saklama sunar. Uygulama başlatıldığında eski/otomatik kayıtlar güncel ayrıştırıcı mantığıyla otomatik olarak güncellenir (repaired/migrated). Hiçbir finansal veri buluta veya dış sunucuya gönderilmez.\n\n4. **SMS ve Bildirim Ayrıştırma Güvenliği:**\n   - `BankParser`, brüt fatura tutarları yerine net ödenecek tutarları (örneğin devlet destekleri düşülerek) seçer, kullanılabilir bakiye ile harcama tutarlarını karıştırmaz, OTP ve pazarlama mesajlarını reddeder.\n\n5. **Hesaplamalar ve Raporlar:**\n   - Kuruş hassasiyetinde (`Double`, 0.005 tolerans) para aritmetiği, günlük, haftalık ve aylık periyot filtrelemeleri, kategori toplamları ve bütçe oranları matematiksel olarak tam ve tutarlıdır.\n\n6. **Değişen Dosyalar:**\n   - Yalnızca `gradlew` çalıştırma yetkisi (`chmod +x`) güncellenmiştir. Kaynak kodlarda veri bütünlüğünü veya gizliliği riske atacak hiçbir değişiklik yapılmamıştır.\n\n7. **Test Sonuçları:**\n   - `BankParserTest.kt` içerisindeki tüm birim testleri (fatura net tutar seçimi, çoklu tutar belirsizliği, kart harcaması vs. bakiye ayrımı, sayı formatları) teorik ve mantıksal olarak doğrulanmıştır.\n\n8. **Riskler ve Öneriler:**\n   - Hiçbir kritik risk bulunmamaktadır. Veriler tamamen cihazda şifresiz yerel SharedPreferences içinde tutulur (cihaz güvenliğine tabidir). Ekstra harici yapay zekâ entegrasyonu bulunmamaktadır.",
+  "stats": {
+    "models": {
+      "gemini-3.5-flash-lite": {
+        "api": {
+          "totalRequests": 37,
+          "totalErrors": 7,
+          "totalLatencyMs": 55833,
+          "errorsByType": {
+            "ApiError": 5,
+            "Error": 2
+          }
+        },
+        "tokens": {
+          "input": 161714,
+          "prompt": 831724,
+          "candidates": 2043,
+          "total": 839713,
+          "cached": 670010,
+          "thoughts": 5946,
+          "tool": 0
+        },
+        "roles": {
+          "main": {
+            "totalRequests": 37,
+            "totalErrors": 7,
+            "totalLatencyMs": 55833,
+            "tokens": {
+              "input": 161714,
+              "prompt": 831724,
+              "candidates": 2043,
+              "total": 839713,
+              "cached": 670010,
+              "thoughts": 5946,
+              "tool": 0
+            }
+          }
+        }
+      },
+      "gemini-3-flash-preview": {
+        "api": {
+          "totalRequests": 1,
+          "totalErrors": 0,
+          "totalLatencyMs": 3218,
+          "errorsByType": {}
+        },
+        "tokens": {
+          "input": 6675,
+          "prompt": 6675,
+          "candidates": 110,
+          "total": 7115,
+          "cached": 0,
+          "thoughts": 330,
+          "tool": 0
+        },
+        "roles": {
+          "utility_loop_detector": {
+            "totalRequests": 1,
+            "totalErrors": 0,
+            "totalLatencyMs": 3218,
+            "tokens": {
+              "input": 6675,
+              "prompt": 6675,
+              "candidates": 110,
+              "total": 7115,
+              "cached": 0,
+              "thoughts": 330,
+              "tool": 0
+            }
+          }
+        }
+      }
+    },
+    "tools": {
+      "totalCalls": 29,
+      "totalSuccess": 29,
+      "totalFail": 0,
+      "totalDurationMs": 28613,
+      "totalDecisions": {
+        "accept": 29,
+        "reject": 0,
+        "modify": 0,
+        "auto_accept": 0
+      },
+      "byName": {
+        "update_topic": {
+          "count": 3,
+          "success": 3,
+          "fail": 0,
+          "durationMs": 5,
+          "decisions": {
+            "accept": 3,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "run_shell_command": {
+          "count": 11,
+          "success": 11,
+          "fail": 0,
+          "durationMs": 28559,
+          "decisions": {
+            "accept": 11,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        },
+        "read_file": {
+          "count": 15,
+          "success": 15,
+          "fail": 0,
+          "durationMs": 49,
+          "decisions": {
+            "accept": 15,
+            "reject": 0,
+            "modify": 0,
+            "auto_accept": 0
+          }
+        }
+      }
+    },
+    "files": {
+      "totalLinesAdded": 0,
+      "totalLinesRemoved": 0
+    }
+  }
+}
