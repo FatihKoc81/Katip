@@ -3,6 +3,7 @@ package com.fatihkooc.katip
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.speech.tts.TextToSpeech
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -24,6 +25,7 @@ object OrtakAIMerkezi {
     private const val FIREBASE_PROJECT_ID = "arena-mobile-1453"
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile private var speechEngine: TextToSpeech? = null
     private fun deliver(callback: (Result) -> Unit, result: Result) = mainHandler.post { callback(result) }
 
     private fun firebaseAppOrNull(): FirebaseApp? = try {
@@ -58,6 +60,48 @@ object OrtakAIMerkezi {
         } catch (e: Exception) {
             deliver(callback, Result(false, e.message ?: "Firebase başlatılamadı"))
         }
+    }
+
+
+    /** Gelen uygulama mesajlarını ve AI yanıtlarını cihazın Türkçe sesiyle okur. */
+    fun speak(context: Context, text: String, callback: (Result) -> Unit = {}) {
+        if (text.isBlank()) {
+            deliver(callback, Result(false, "Seslendirilecek metin boş"))
+            return
+        }
+        mainHandler.post {
+            try {
+                val engine = speechEngine ?: TextToSpeech(context.applicationContext) { status ->
+                    if (status == TextToSpeech.SUCCESS) {
+                        val tts = speechEngine
+                        val language = tts?.setLanguage(java.util.Locale("tr", "TR"))
+                        if (tts != null && language != TextToSpeech.LANG_MISSING_DATA &&
+                            language != TextToSpeech.LANG_NOT_SUPPORTED) {
+                            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
+                            deliver(callback, Result(true, "Sesli okuma başlatıldı"))
+                        } else {
+                            deliver(callback, Result(false, "Türkçe ses paketi cihazda bulunamadı"))
+                        }
+                    } else {
+                        deliver(callback, Result(false, "Ses motoru başlatılamadı"))
+                    }
+                }.also { speechEngine = it }
+                if (speechEngine === engine && engine.isSpeaking) engine.stop()
+                if (engine.language != java.util.Locale("tr", "TR")) {
+                    engine.language = java.util.Locale("tr", "TR")
+                }
+                if (engine.isLanguageAvailable(java.util.Locale("tr", "TR")) >= TextToSpeech.LANG_AVAILABLE) {
+                    engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "ortak-ai-" + System.currentTimeMillis())
+                    deliver(callback, Result(true, "Sesli okuma başlatıldı"))
+                }
+            } catch (e: Exception) {
+                deliver(callback, Result(false, e.message ?: "Sesli okuma başlatılamadı"))
+            }
+        }
+    }
+
+    fun stopSpeaking() {
+        mainHandler.post { speechEngine?.stop() }
     }
 
     fun chat(message: String, callback: (Result) -> Unit) = request("/app/chat", JSONObject().put("message", message), callback)
