@@ -140,9 +140,12 @@ object OrtakAIMerkezi {
                                 val item = messages.optJSONObject(i) ?: continue
                                 val from = item.optString("from", item.optString("sender", item.optString("project")))
                                 val to = item.optString("to")
-                                val content = item.optString("content", item.optString("message", item.optString("text"))).trim()
+                                val rawContent = item.optString("content", item.optString("message", item.optString("text"))).trim()
+                                val depthMatch = Regex("^\\[\\[ORTAK_AI_TUR:(\\d+)\\]\\]\\s*").find(rawContent)
+                                val depth = depthMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+                                val content = rawContent.replace(Regex("^\\[\\[ORTAK_AI_TUR:\\d+\\]\\]\\s*"), "").trim()
                                 val id = item.optString("id", item.optString("messageId", "$from|$content|$i"))
-                                if (content.isBlank() || from == PROJECT || (to.isNotBlank() && to != PROJECT) ||
+                                if (content.isBlank() || depth >= 3 || from == PROJECT || (to.isNotBlank() && to != PROJECT) ||
                                     !seenMessageIds.add(id)) continue
                                 speak(context, "$from diyor ki: $content")
                                 val prompt = "Sen KATIP uygulamasının yapay zekâ asistanısın. " +
@@ -153,7 +156,7 @@ object OrtakAIMerkezi {
                                             val json = JSONObject(answer.body)
                                             val reply = json.optString("response", json.optString("reply", json.optString("text"))).trim()
                                             if (reply.isNotBlank()) {
-                                                sendMessage(from, reply) { sent ->
+                                                sendMessage(from, "[[ORTAK_AI_TUR:${depth + 1}]] $reply") { sent ->
                                                     if (sent.ok) speak(context, "Yanıtım: $reply")
                                                 }
                                             }
