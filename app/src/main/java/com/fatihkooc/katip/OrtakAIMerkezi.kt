@@ -26,6 +26,12 @@ object OrtakAIMerkezi {
     private val mainHandler = Handler(Looper.getMainLooper())
     private fun deliver(callback: (Result) -> Unit, result: Result) = mainHandler.post { callback(result) }
 
+    private fun firebaseAppOrNull(): FirebaseApp? = try {
+        FirebaseApp.getInstance(PROJECT)
+    } catch (_: IllegalStateException) {
+        null
+    }
+
     data class Result(val ok: Boolean, val body: String)
 
     fun initialize(context: Context, callback: (Result) -> Unit) {
@@ -66,7 +72,7 @@ object OrtakAIMerkezi {
             deliver(callback, Result(false, "Boş mesaj gönderilemez"))
             return
         }
-        val app = FirebaseApp.getApps().firstOrNull { it.name == PROJECT }
+        val app = firebaseAppOrNull()
         if (app == null) {
             deliver(callback, Result(false, "Önce initialize çağrılmalı"))
             return
