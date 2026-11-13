@@ -1,0 +1,35 @@
+name: Kâtip PR Build Check
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/pr-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kaynak kodunu al
+        uses: actions/checkout@v4
+      - name: Java 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Gradle 8.7 kur
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Birim testleri ve APK derlemesi
+        run: gradle testDebugUnitTest assembleDebug --stacktrace
+      - name: APK çıktısını doğrula
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
