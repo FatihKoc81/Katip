@@ -42,7 +42,7 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: latest
-          gemini_model: gemini-3.1-flash-lite-preview
+          gemini_model: gemini-3.1-flash-lite
           prompt: |
             You are the autonomous senior developer and technical lead for KÂTİP. Read GEMINI.md fully first.
             TASK: ${{ inputs.task || 'Audit the app, reproduce the highest-impact verified defect, fix it without exposing financial data, run tests, and prepare a PR.' }}
