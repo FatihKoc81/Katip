@@ -60,6 +60,8 @@ class MainActivity : ComponentActivity() {
             SetupDialogs()
         }
         setup()
+        // Yalnızca anonim oturumu hazırlar; Kâtip verileri otomatik gönderilmez.
+        OrtakAIMerkezi.initialize(this) { /* bağlantı sonucu; uygulama verisi aktarılmaz */ }
     }
 
     override fun onResume() {
