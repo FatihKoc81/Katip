@@ -65,13 +65,23 @@ jobs:
         run: |
           rm -rf app/build app/.cxx .gradle .kotlin build gemini-artifacts .gemini/commands
           rm -f local.properties Katip.apk Katip-v*.zip
+          find . -type d -name __pycache__ -prune -exec rm -rf {} +
+          find . -type f -name '*.pyc' -delete
           git checkout -- gradlew
       - name: Güvenli değişiklikleri hazırla
         run: |
+          set -euo pipefail
           git add -A
           git reset -- .github/workflows
+          git diff --cached --name-only -z | while IFS= read -r -d '' file; do
+            case "$file" in
+              *.kt|*.java|*.xml|*.gradle|*.kts|*.md) ;;
+              *) git reset -- "$file" ;;
+            esac
+          done
           git diff --cached --check
       - name: GLM 4.7 Flash bağımsız incelemesi
+        id: glm-review
         env:
           AI_PROJECT: KATIP
           ALLOWED_PATH_PATTERN: '\.(kt|java|xml|gradle|kts|md)$'
@@ -88,12 +98,18 @@ jobs:
             return data;
           }
           async function main() {
-            const files = execFileSync('git', ['diff', '--cached', '--name-only'], { encoding: 'utf8' })
+            const allFiles = execFileSync('git', ['diff', '--cached', '--name-only'], { encoding: 'utf8' })
               .split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-            if (!files.length) throw new Error('GLM incelemesi için kaynak dosya farkı yok.');
             const pattern = new RegExp(process.env.ALLOWED_PATH_PATTERN, 'i');
-            const blocked = files.filter(file => !pattern.test(file));
-            if (blocked.length) throw new Error('KÂTİP gizlilik kuralı nedeniyle kaynak dışı dosya aktarılmadı: ' + blocked.join(', '));
+            const files = allFiles.filter(file => pattern.test(file));
+            const ignored = allFiles.filter(file => !pattern.test(file));
+            if (ignored.length) console.log('GLM aktarımına dahil edilmeyen uygulama dışı dosyalar:', ignored.join(', '));
+            if (!files.length) {
+              fs.writeFileSync(process.env.RUNNER_TEMP + '/glm-review.md', 'KÂTİP kaynak kodunda incelenecek değişiklik yok; PR gerekmiyor.\n');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=no_changes\n');
+              console.log('KÂTİP kaynak değişikliği yok; PR atlandı.');
+              return;
+            }
             const diff = execFileSync('git', ['diff', '--cached', '--no-ext-diff', '--unified=3', '--', ...files], {
               encoding: 'utf8', maxBuffer: 8 * 1024 * 1024
             });
@@ -133,10 +149,12 @@ jobs:
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, '## GLM 4.7 Flash incelemesi\n\n' + text + '\n');
             console.log('GLM_REVIEW_RESULT:\n' + text.slice(0, 3000));
             if (!/^APPROVED\b/i.test(text)) throw new Error('GLM KÂTİP değişikliklerini onaylamadı; PR açılmadı.');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=approved\n');
           }
           main().catch(error => { console.error(error); process.exit(1); });
           NODE
       - name: ChatGPT bağımsız kod denetimi
+        if: steps.glm-review.outputs.status != 'no_changes'
         id: gpt-review
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -187,6 +205,7 @@ jobs:
           main().catch(error => { console.error(error); process.exit(1); });
           NODE
       - name: Üç yapay zekâ denetim raporunu birleştir
+        if: steps.glm-review.outputs.status != 'no_changes'
         env:
           CHATGPT_STATUS: ${{ steps.gpt-review.outputs.status }}
         run: |
