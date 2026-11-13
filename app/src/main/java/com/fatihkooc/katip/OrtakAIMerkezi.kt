@@ -8,6 +8,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONObject
+import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
@@ -26,6 +27,8 @@ object OrtakAIMerkezi {
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = Handler(Looper.getMainLooper())
     @Volatile private var speechEngine: TextToSpeech? = null
+    private val seenMessageIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+    @Volatile private var conversationRunning = false
     private fun deliver(callback: (Result) -> Unit, result: Result) = mainHandler.post { callback(result) }
 
     private fun firebaseAppOrNull(): FirebaseApp? = try {
@@ -116,6 +119,63 @@ object OrtakAIMerkezi {
         request("/app/messages", JSONObject().put("from", PROJECT).put("to", to).put("content", content), callback)
 
     fun getMessages(callback: (Result) -> Unit) = request("/app/messages?project=$PROJECT", null, callback)
+
+    /** Gelen mesajları düzenli kontrol eder, AI ile cevap üretir ve cevabı karşı uygulamaya yollar. */
+    fun startConversation(context: Context, intervalMs: Long = 12000L) {
+        if (conversationRunning) return
+        conversationRunning = true
+        val interval = intervalMs.coerceAtLeast(5000L)
+        fun scheduleNext() {
+            if (conversationRunning) mainHandler.postDelayed({ poll() }, interval)
+        }
+        fun poll() {
+            if (!conversationRunning) return
+            getMessages { result ->
+                if (result.ok) {
+                    try {
+                        val root = JSONObject(result.body)
+                        val messages = when {
+                            root.optJSONArray("messages") != null -> root.optJSONArray("messages")!!
+                            root.optJSONArray("items") != null -> root.optJSONArray("items")!!
+                            root.optJSONArray("data") != null -> root.optJSONArray("data")!!
+                            else -> JSONArray()
+                        }
+                        for (i in 0 until messages.length()) {
+                            val item = messages.optJSONObject(i) ?: continue
+                            val from = item.optString("from", item.optString("sender", item.optString("project")))
+                            val to = item.optString("to")
+                            val content = item.optString("content", item.optString("message", item.optString("text"))).trim()
+                            val id = item.optString("id", item.optString("messageId", "$from|$content|$i"))
+                            if (content.isBlank() || from == PROJECT || (to.isNotBlank() && to != PROJECT) ||
+                                !seenMessageIds.add(id)) continue
+                            speak(context, "$from diyor ki: $content")
+                            val prompt = "Sen KATIP uygulamasının yapay zekâ asistanısın. " +
+                                "$from uygulamasından şu mesaj geldi: $content. Kısa, doğal ve Türkçe cevap ver. Yalnızca cevabı yaz."
+                            chat(prompt) { answer ->
+                                if (answer.ok) {
+                                    try {
+                                        val json = JSONObject(answer.body)
+                                        val reply = json.optString("response", json.optString("reply", json.optString("text"))).trim()
+                                        if (reply.isNotBlank()) {
+                                            sendMessage(from, reply) { sent ->
+                                                if (sent.ok) speak(context, "Yanıtım: $reply")
+                                            }
+                                        }
+                                    } catch (_: Exception) { }
+                                }
+                            }
+                        }
+                    } catch (_: Exception) { }
+                }
+                scheduleNext()
+            }
+        }
+        poll()
+    }
+
+    fun stopConversation() {
+        conversationRunning = false
+    }
 
     private fun request(path: String, payload: JSONObject?, callback: (Result) -> Unit) {
         if (payload != null && (payload.optString("message").isBlank() && payload.optString("content").isBlank())) {
